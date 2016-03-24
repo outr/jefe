@@ -4,19 +4,41 @@ import java.io.File
 
 import org.powerscala.Version
 
-case class Ivy2(baseDirectory: File) extends Repository {
-  override def info(dependency: Dependency): Option[DependencyInfo] = {
-    val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")
-    val directoryNames = directory.listFiles().toList.filter(f => f.isDirectory).map(_.getName)
-    val versions = directoryNames.collect {
-      case Version(v) => v
-    }.sorted
-    println(s"Versions: ${versions.map(v => s"$v (${v.snapshot})").mkString(", ")}")
-    None
-  }
-}
-
 object Ivy2 {
-  val Local = Ivy2(new File(s"${System.getProperty("user.home")}/.ivy2/local"))
-  val Cache = Ivy2(new File(s"${System.getProperty("user.home")}/.ivy2/cache"))
+  object Local extends Repository {
+    private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/local")
+
+    override def info(dependency: Dependency): Option[DependencyInfo] = {
+      val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")
+      if (directory.exists()) {
+        val directoryNames = directory.listFiles().toList.filter(f => f.isDirectory).map(_.getName)
+        val versions = directoryNames.collect {
+          case Version(v) => VersionedDependency(dependency, v, Some(this))
+        }.sorted.reverse
+        val latest = versions.head
+        val release = versions.find(!_.version.snapshot)
+        Some(DependencyInfo(dependency, latest, release, versions))
+      } else {
+        None
+      }
+    }
+  }
+  object Cache extends Repository {
+    private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/cache")
+
+    override def info(dependency: Dependency): Option[DependencyInfo] = {
+      val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")
+      if (directory.exists()) {
+        val xmlNames = directory.listFiles().toList.map(_.getName).filter(s => s.startsWith("ivy-") && s.endsWith(".xml")).map(s => s.substring(4, s.length() - 4))
+        val versions = xmlNames.collect {
+          case Version(v) => VersionedDependency(dependency, v, Some(this))
+        }.sorted.reverse
+        val latest = versions.head
+        val release = versions.find(!_.version.snapshot)
+        Some(DependencyInfo(dependency, latest, release, versions))
+      } else {
+        None
+      }
+    }
+  }
 }

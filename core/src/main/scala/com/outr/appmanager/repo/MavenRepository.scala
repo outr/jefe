@@ -20,10 +20,15 @@ case class MavenRepository(baseURL: String) extends Repository {
         case null | "" => None
         case v => Some(Version(v))
       }
-      val versions = (xml \ "versioning" \ "versions" \ "version").toList.map(v => Version(v.text))
-      val lastUpdated = (xml \ "versioning" \ "lastUpdated").text
+      val versions = (xml \ "versioning" \ "versions" \ "version").toList.map(v => Version(v.text)).sorted.reverse
+//      val lastUpdated = (xml \ "versioning" \ "lastUpdated").text
 
-      Some(DependencyInfo(dependency, latest, release, versions, lastUpdated))
+      Some(DependencyInfo(
+        dependency = dependency,
+        latest = VersionedDependency(dependency, latest, Some(this)),
+        release = release.map(VersionedDependency(dependency, _, Some(this))),
+        versions = versions.map(VersionedDependency(dependency, _, Some(this)))
+      ))
     } catch {
       case exc: FileNotFoundException => None
     }
