@@ -56,7 +56,7 @@ object AppManagerBuild extends Build {
 
   lazy val core = project.in(file("core"))
     .settings(basicSettings("core"))
-    .settings(libraryDependencies ++= Seq(scalaXML))
+    .settings(libraryDependencies ++= Seq(powerscala, scalaXML))
 
   lazy val app = project.in(file("app"))
     .settings(basicSettings("app"))
@@ -81,5 +81,6 @@ object Details {
 }
 
 object Dependencies {
+  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
 }
