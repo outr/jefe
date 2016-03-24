@@ -5,7 +5,7 @@ import java.net.URL
 
 import org.powerscala.{IO, Version}
 
-import scala.xml.XML
+import scala.xml.{Elem, XML}
 
 case class MavenRepository(baseURL: String) extends Repository {
   def info(dependency: Dependency): Option[DependencyInfo] = {
@@ -25,12 +25,42 @@ case class MavenRepository(baseURL: String) extends Repository {
 
       Some(DependencyInfo(
         dependency = dependency,
-        latest = VersionedDependency(dependency, latest, Some(this)),
-        release = release.map(VersionedDependency(dependency, _, Some(this))),
-        versions = versions.map(VersionedDependency(dependency, _, Some(this)))
+        latest = VersionedDependency(dependency, latest, None, this),
+        release = release.map(VersionedDependency(dependency, _, None, this)),
+        versions = versions.map(VersionedDependency(dependency, _, None, this))
       ))
     } catch {
       case exc: FileNotFoundException => None
     }
+  }
+
+  override def jarFor(dependency: VersionedDependency): URL = {
+    val d = dependency.dependency
+    val url = s"$baseURL/${d.group.replace('.', '/')}/${d.name}/${dependency.version}/${d.name}-${dependency.version}.jar"
+    new URL(url)
+  }
+
+  override def dependenciesFor(dependency: VersionedDependency): List[VersionedDependency] = {
+    val d = dependency.dependency
+    val url = s"$baseURL/${d.group.replace('.', '/')}/${d.name}/${dependency.version}/${d.name}-${dependency.version}.pom"
+    val xml = XML.load(new URL(url))
+    MavenRepository.dependenciesFromPOM(this, xml)
+  }
+}
+
+object MavenRepository {
+  def dependenciesFromPOM(repository: Repository, xml: Elem): List[VersionedDependency] = {
+    val dependenciesXML = xml \ "dependencies" \ "dependency"
+    dependenciesXML.map { node =>
+      val groupId = (node \ "groupId").text
+      val artifactId = (node \ "artifactId").text
+      val version = (node \ "version").text
+      val scope = (node \ "scope").text match {
+        case null | "" => None
+        case s => Some(s)
+      }
+      val dependency = Dependency(groupId, artifactId)
+      VersionedDependency(dependency, Version(version), scope, repository)
+    }.toList
   }
 }
