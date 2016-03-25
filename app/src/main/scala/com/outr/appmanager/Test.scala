@@ -3,7 +3,8 @@ package com.outr.appmanager
 import java.io.File
 
 import com.outr.appmanager.repo._
-import org.powerscala.IO
+import org.powerscala.io._
+import scala.collection.mutable
 
 object Test extends App {
   val directory = new File("cache")
@@ -11,25 +12,29 @@ object Test extends App {
 
   val scalaRelational = "org.scalarelational" %% "scalarelational-core"
 //  val scalaTest = "org.scalatest" %% "scalatest"
-  val repos = List(Ivy2.Local, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases)
+  val repos = List(Ivy2.Local, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases, Maven.Repo1)
   val info = Repository.info(scalaRelational, repos: _*).get //, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases).get
   val version = info.release.get
-  println(s"JAR: ${version.jar}")
-  println(version.dependencies)
 
-  val path = version.jar.toString
-  val filename = path.substring(path.lastIndexOf('/') + 1)
-  IO.copy(version.jar, new File(directory, filename))
+  download(version, repos)
 
-  version.dependencies.foreach { d =>
-    val dep = d.resolve(repos: _*)
-    val path = dep.jar.toString
-    val filename = path.substring(path.lastIndexOf('/') + 1)
-    IO.copy(dep.jar, new File(directory, filename))
-  }
 //  println(Ivy2.Local.info(scalaRelational))
 //  println(Ivy2.Cache.info(scalaTest))
 //  val info = Sonatype.Releases.info(scalaRelational).get
 //  println(s"Info: $info, ${info.latest.major} / ${info.latest.minor} / ${info.latest.extra}")
 
+  def download(dep: VersionedDependency, repos: List[Repository], cached: mutable.Set[String] = mutable.Set.empty): Unit = {
+    val filename = s"${dep.name}-${dep.version}.jar"
+    if (cached.contains(filename)) {
+      // Already downloaded
+      println(s"$filename already downloaded, skipping.")
+    } else {
+      println(s"Downloading $filename...")
+      val file = new File(directory, filename)
+      IO.stream(dep.jar, file)
+      cached += filename
+
+      dep.dependencies.foreach(d => download(d.resolve(repos: _*), repos, cached))
+    }
+  }
 }

@@ -56,7 +56,7 @@ object AppManagerBuild extends Build {
 
   lazy val core = project.in(file("core"))
     .settings(basicSettings("core"))
-    .settings(libraryDependencies ++= Seq(powerscala, scalaXML, scalaTest))
+    .settings(libraryDependencies ++= Seq(powerscala, scalaXML, scribeSLF4J, scalaTest))
 
   lazy val app = project.in(file("app"))
     .settings(basicSettings("app"))
@@ -83,5 +83,6 @@ object Details {
 object Dependencies {
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
+  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1-SNAPSHOT"
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 }
