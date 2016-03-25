@@ -1,9 +1,13 @@
 package com.outr.appmanager.repo
 
+import org.powerscala.Version
+
 case class DependencyInfo(dependency: Dependency,
                           latest: VersionedDependency,
                           release: Option[VersionedDependency],
                           versions: List[VersionedDependency]) {
+  def version(version: Version): Option[VersionedDependency] = versions.find(_.version == version)
+
   def merge(other: DependencyInfo): DependencyInfo = {
     if (dependency != other.dependency) throw new RuntimeException(s"Dependencies don't match for merge: $dependency vs ${other.dependency}")
     val latest = if (this.latest.version >= other.latest.version) {

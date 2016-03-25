@@ -11,7 +11,8 @@ object Test extends App {
 
   val scalaRelational = "org.scalarelational" %% "scalarelational-core"
 //  val scalaTest = "org.scalatest" %% "scalatest"
-  val info = Repository.info(scalaRelational, Ivy2.Local).get //, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases).get
+  val repos = List(Ivy2.Local, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases)
+  val info = Repository.info(scalaRelational, repos: _*).get //, Ivy2.Cache, Sonatype.Snapshots, Sonatype.Releases).get
   val version = info.release.get
   println(s"JAR: ${version.jar}")
   println(version.dependencies)
@@ -21,9 +22,10 @@ object Test extends App {
   IO.copy(version.jar, new File(directory, filename))
 
   version.dependencies.foreach { d =>
-    val path = d.jar.toString
+    val dep = d.resolve(repos: _*)
+    val path = dep.jar.toString
     val filename = path.substring(path.lastIndexOf('/') + 1)
-    IO.copy(d.jar, new File(directory, filename))
+    IO.copy(dep.jar, new File(directory, filename))
   }
 //  println(Ivy2.Local.info(scalaRelational))
 //  println(Ivy2.Cache.info(scalaTest))
