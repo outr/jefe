@@ -29,6 +29,7 @@ object Test extends App {
       // Already downloaded
       println(s"$filename already downloaded, skipping.")
     } else {
+      // TODO: change to find and download, don't bother resolving
       println(s"Downloading $filename...")
       val file = new File(directory, filename)
       IO.stream(dep.jar, file)
