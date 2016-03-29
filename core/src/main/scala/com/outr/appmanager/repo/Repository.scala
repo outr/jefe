@@ -7,7 +7,9 @@ trait Repository {
 
   def jarFor(dependency: VersionedDependency): URL
 
-  def dependenciesFor(dependency: VersionedDependency): List[VersionedDependency]
+  def hasVersion(dependency: VersionedDependency): Boolean
+
+  def dependenciesFor(dependency: VersionedDependency): (Option[VersionedDependency], List[VersionedDependency])
 }
 
 object Repository {

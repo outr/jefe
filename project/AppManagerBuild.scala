@@ -83,6 +83,6 @@ object Details {
 object Dependencies {
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1-SNAPSHOT"
+  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1"
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 }
