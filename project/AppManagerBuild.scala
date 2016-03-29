@@ -56,7 +56,7 @@ object AppManagerBuild extends Build {
 
   lazy val core = project.in(file("core"))
     .settings(basicSettings("core"))
-    .settings(libraryDependencies ++= Seq(powerscala, scalaXML, scribeSLF4J, scalaTest))
+    .settings(libraryDependencies ++= Seq(ivy, coursier, coursierCache, powerscala, scalaXML, scribeSLF4J, scalaTest))
 
   lazy val app = project.in(file("app"))
     .settings(basicSettings("app"))
@@ -81,6 +81,11 @@ object Details {
 }
 
 object Dependencies {
+  val ivy = "org.apache.ivy" % "ivy" % "2.4.0"
+
+  val coursier = "com.github.alexarchambault" %% "coursier" % "1.0.0-M10"
+  val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
+
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1"
