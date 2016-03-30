@@ -1,19 +1,13 @@
 package com.outr.appmanager.repo
 
-import java.net.URL
-
 trait Repository {
   def info(dependency: Dependency): Option[DependencyInfo]
 
-  def jarFor(dependency: VersionedDependency): URL
-
-  def hasVersion(dependency: VersionedDependency): Boolean
-
-  def dependenciesFor(dependency: VersionedDependency): (Option[VersionedDependency], List[VersionedDependency])
+  def internal: coursier.Repository
 }
 
 object Repository {
-  def info(dependency: Dependency, repositories: Repository*): Option[DependencyInfo] = {
+  def info(dependency: Dependency, repositories: Seq[Repository]): Option[DependencyInfo] = {
     val infos = repositories.flatMap(_.info(dependency))
     if (infos.nonEmpty) {
       var info = infos.head
