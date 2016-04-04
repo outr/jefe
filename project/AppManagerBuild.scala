@@ -1,6 +1,5 @@
 import com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin
 import com.typesafe.sbt.SbtNativePackager.autoImport._
-//import NativePackagerKeys._
 import sbt.Keys._
 import sbt._
 
@@ -56,7 +55,7 @@ object AppManagerBuild extends Build {
   )
 
   lazy val root = project.in(file("."))
-    .aggregate(core)
+    .aggregate(core, launch, app)
     .settings(basicSettings("root"))
     .settings(publishArtifact := false)
 
@@ -64,9 +63,17 @@ object AppManagerBuild extends Build {
     .settings(basicSettings("core"))
     .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, metarx, scalaXML, scribeSLF4J, scalaTest))
 
+  lazy val launch = project.in(file("launch"))
+    .dependsOn(core)
+    .settings(basicSettings("launch"))
+
+  lazy val manager = project.in(file("manager"))
+    .dependsOn(core)
+    .settings(basicSettings("manager"))
+
   lazy val app = project.in(file("app"))
     .settings(basicSettings("app"))
-    .dependsOn(core)
+    .dependsOn(core, launch, manager)
     .enablePlugins(JDKPackagerPlugin)
 }
 
