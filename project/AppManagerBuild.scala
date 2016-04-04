@@ -1,3 +1,6 @@
+import com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin
+import com.typesafe.sbt.SbtNativePackager.autoImport._
+//import NativePackagerKeys._
 import sbt.Keys._
 import sbt._
 
@@ -16,6 +19,9 @@ object AppManagerBuild extends Build {
       Resolver.sonatypeRepo("releases"),
       Resolver.typesafeRepo("releases")
     ),
+    NativePackagerKeys.maintainer := "OUTR Technologies, LLC",
+    packageSummary := "Example summary",
+    packageDescription := "Example description",
     publishTo <<= version {
       (v: String) =>
         val nexus = "https://oss.sonatype.org/"
@@ -56,17 +62,18 @@ object AppManagerBuild extends Build {
 
   lazy val core = project.in(file("core"))
     .settings(basicSettings("core"))
-    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribeSLF4J, scalaTest))
+    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, metarx, scalaXML, scribeSLF4J, scalaTest))
 
   lazy val app = project.in(file("app"))
     .settings(basicSettings("app"))
     .dependsOn(core)
+    .enablePlugins(JDKPackagerPlugin)
 }
 
 object Details {
   val organization = "com.outr.appmanager"
   val name = "appmanager"
-  val version = "1.0.0-SNAPSHOT"
+  val version = "1.0.0"
   val url = "http://outr.com"
   val licenseType = "MIT"
   val licenseURL = "http://opensource.org/licenses/MIT"
@@ -85,6 +92,7 @@ object Dependencies {
   val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
 
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
+  val metarx = "pl.metastack" %% "metarx" % "0.1.6"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1"
   val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
