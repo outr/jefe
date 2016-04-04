@@ -10,6 +10,11 @@ trait Monitor extends Logging {
 
   def downloaded: Long = _downloaded
   def length: Long = _length
+  def percent: Double = if (downloaded == 0L || length == 0L) {
+    0.0
+  } else {
+    (downloaded.toDouble / length.toDouble) * 100.0
+  }
 
   def modified(): Unit
 
@@ -57,6 +62,6 @@ case class Downloading(url: String, file: File, var downloaded: Long, var length
 
 object Monitor {
   object Console extends Monitor with Logging {
-    override def modified(): Unit = logger.info(s"Downloading $downloaded of $length")
+    override def modified(): Unit = logger.info(s"Downloading $downloaded of $length (${math.floor(percent)}%)")
   }
 }
