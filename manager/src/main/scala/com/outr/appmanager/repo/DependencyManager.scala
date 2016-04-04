@@ -39,7 +39,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
         throw new RuntimeException(s"Conflicts: $conflicts")
       }
       val localArtifacts = Task.gatherUnordered(
-        resolution.artifacts.map(Cache.file(_, logger = Some(monitor)).run)
+        resolution.artifacts.map(Cache.file(_, logger = Some(monitor.cacheLogger)).run)
       ).run
       val fileErrors = localArtifacts.map(_.toEither).collect {
         case Left(err) => err

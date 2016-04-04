@@ -2,9 +2,11 @@ package com.outr.appmanager
 
 import com.outr.appmanager.launch.Launcher
 import com.outr.appmanager.repo._
+import com.outr.scribe.Logging
 
-object Test extends App {
-  val repositories = List(Ivy2.Local, Ivy2.Cache, Maven.Repo1)
+object Test extends App with Logging {
+//  val repositories = List(Ivy2.Local, Ivy2.Cache, Maven.Repo1)
+  val repositories = List(Maven.Repo1, Sonatype.Releases)
 
   val dependency = "com.outr.hw" %% "hello-world" % "latest.release"
   val monitor = Monitor.Console
@@ -14,7 +16,7 @@ object Test extends App {
   val launcher = new Launcher("com.outr.hw.HelloWorld", files)
   val instance = launcher.classLoaded()
   instance.status.attach { s =>
-    println(s"Status: $s")
+    logger.info(s"Status: $s")
   }
   instance.start()
 }
