@@ -1,4 +1,4 @@
-package com.outr.appmanager.launch
+package com.outr.jefe.launch
 
 class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance {
   private lazy val process = builder.inheritIO().start()

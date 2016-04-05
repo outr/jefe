@@ -1,4 +1,4 @@
-package com.outr.appmanager.repo
+package com.outr.jefe.repo
 
 import com.outr.scribe.Logging
 import org.powerscala.Version

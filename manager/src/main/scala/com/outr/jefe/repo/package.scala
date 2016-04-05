@@ -1,4 +1,4 @@
-package com.outr.appmanager
+package com.outr.jefe
 
 import scala.language.implicitConversions
 

@@ -1,7 +1,7 @@
-package com.outr.appmanager
+package com.outr.jefe
 
-import com.outr.appmanager.launch.Launcher
 import com.outr.appmanager.repo._
+import com.outr.jefe.launch.Launcher
 import com.outr.scribe.Logging
 
 object Test extends App with Logging {

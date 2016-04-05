@@ -1,4 +1,4 @@
-package com.outr.appmanager.repo
+package com.outr.jefe.repo
 
 trait Repository {
   def info(dependency: Dependency): Option[DependencyInfo]

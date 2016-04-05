@@ -1,4 +1,4 @@
-package com.outr.appmanager.launch
+package com.outr.jefe.launch
 
 import java.io.File
 

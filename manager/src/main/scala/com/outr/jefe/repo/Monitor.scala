@@ -1,4 +1,5 @@
-package com.outr.appmanager.repo
+package com.outr.jefe.repo
+
 import java.io.File
 
 import com.outr.scribe.Logging

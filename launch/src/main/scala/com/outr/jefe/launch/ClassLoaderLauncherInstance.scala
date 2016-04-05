@@ -1,4 +1,4 @@
-package com.outr.appmanager.launch
+package com.outr.jefe.launch
 
 class ClassLoaderLauncherInstance(classLoader: ClassLoader, runner: () => Unit) extends LauncherInstance {
   val runnable = new Runnable {

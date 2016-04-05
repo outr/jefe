@@ -3,7 +3,7 @@ import com.typesafe.sbt.SbtNativePackager.autoImport._
 import sbt.Keys._
 import sbt._
 
-object AppManagerBuild extends Build {
+object JefeBuild extends Build {
   import Dependencies._
 
   private def basicSettings(moduleName: String) = Seq(
@@ -55,31 +55,27 @@ object AppManagerBuild extends Build {
   )
 
   lazy val root = project.in(file("."))
-    .aggregate(core, launch, app)
+    .aggregate(launch, manager, example)
     .settings(basicSettings("root"))
     .settings(publishArtifact := false)
 
-  lazy val core = project.in(file("core"))
-    .settings(basicSettings("core"))
-    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, metarx, scalaXML, scribeSLF4J, scalaTest))
-
   lazy val launch = project.in(file("launch"))
-    .dependsOn(core)
     .settings(basicSettings("launch"))
+    .settings(libraryDependencies ++= Seq(metarx, scribeSLF4J))
 
   lazy val manager = project.in(file("manager"))
-    .dependsOn(core)
     .settings(basicSettings("manager"))
+    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribeSLF4J))
 
-  lazy val app = project.in(file("app"))
+  lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
-    .dependsOn(core, launch, manager)
+    .dependsOn(launch, manager)
     .enablePlugins(JDKPackagerPlugin)
 }
 
 object Details {
-  val organization = "com.outr.appmanager"
-  val name = "appmanager"
+  val organization = "com.outr.jefe"
+  val name = "jefe"
   val version = "1.0.0"
   val url = "http://outr.com"
   val licenseType = "MIT"
@@ -97,10 +93,8 @@ object Details {
 object Dependencies {
   val coursier = "com.github.alexarchambault" %% "coursier" % "1.0.0-M10"
   val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
-
-  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val metarx = "pl.metastack" %% "metarx" % "0.1.6"
+  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1"
-  val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 }
