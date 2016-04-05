@@ -1,6 +1,6 @@
 package com.outr.jefe
 
-import com.outr.appmanager.repo._
+import com.outr.jefe.repo._
 import com.outr.jefe.launch.Launcher
 import com.outr.scribe.Logging
 
@@ -9,7 +9,7 @@ object Test extends App with Logging {
   val repositories = List(Maven.Repo1, Sonatype.Releases)
 
   val dependency = "com.outr.hw" %% "hello-world" % "latest.release"
-  val monitor = Monitor.Console
+  val monitor = Monitor.Dialog
   val manager = DependencyManager(repositories, monitor)
   val files = manager.resolve(dependency)
 
