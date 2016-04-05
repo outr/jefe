@@ -9,7 +9,7 @@ import org.powerscala.io._
 import scala.xml.XML
 
 case class MavenRepository(name: String, baseURL: String) extends Repository {
-  lazy val internal = coursier.MavenRepository(baseURL)
+  @transient lazy val internal = coursier.MavenRepository(baseURL)
 
   def info(dependency: Dependency): Option[DependencyInfo] = {
     val url = s"$baseURL/${dependency.group.replace('.', '/')}/${dependency.name}"
@@ -42,6 +42,8 @@ case class MavenRepository(name: String, baseURL: String) extends Repository {
       case t: Throwable => throw new RuntimeException(s"Failed to process maven metadata: $metadataURL.", t)
     }
   }
+
+  def tupled: (String, String) = name -> baseURL
 
   override def toString: String = name
 }

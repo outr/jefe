@@ -55,7 +55,7 @@ object JefeBuild extends Build {
   )
 
   lazy val root = project.in(file("."))
-    .aggregate(launch, manager, example)
+    .aggregate(launch, manager, runner, example)
     .settings(basicSettings("root"))
     .settings(publishArtifact := false)
 
@@ -66,6 +66,10 @@ object JefeBuild extends Build {
   lazy val manager = project.in(file("manager"))
     .settings(basicSettings("manager"))
     .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribeSLF4J))
+
+  lazy val runner = project.in(file("runner"))
+    .settings(basicSettings("runner"))
+    .dependsOn(launch, manager)
 
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
@@ -96,5 +100,5 @@ object Dependencies {
   val metarx = "pl.metastack" %% "metarx" % "0.1.6"
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.1"
+  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2-SNAPSHOT"
 }
