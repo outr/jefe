@@ -8,7 +8,7 @@ object Ivy2 {
   object Local extends Repository {
     private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/local")
 
-    @transient lazy val internal = coursier.Cache.ivy2Local
+    val internal = coursier.Cache.ivy2Local
 
     override def info(dependency: Dependency): Option[DependencyInfo] = {
       val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")
@@ -30,7 +30,7 @@ object Ivy2 {
   object Cache extends Repository {
     private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/cache")
 
-    @transient lazy val internal = coursier.Cache.ivy2Cache
+    val internal = coursier.Cache.ivy2Cache
 
     override def info(dependency: Dependency): Option[DependencyInfo] = {
       val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")

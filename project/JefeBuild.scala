@@ -18,6 +18,7 @@ object JefeBuild extends Build {
       Resolver.sonatypeRepo("releases"),
       Resolver.typesafeRepo("releases")
     ),
+    fork := true,
     NativePackagerKeys.maintainer := "OUTR Technologies, LLC",
     packageSummary := "Example summary",
     packageDescription := "Example description",
@@ -58,19 +59,19 @@ object JefeBuild extends Build {
     .aggregate(launch, manager, runner, example)
     .settings(basicSettings("root"))
     .settings(publishArtifact := false)
-
   lazy val launch = project.in(file("launch"))
     .settings(basicSettings("launch"))
-    .settings(libraryDependencies ++= Seq(metarx, scribeSLF4J))
-
+    .settings(libraryDependencies ++= Seq(metarx, scribe))
   lazy val manager = project.in(file("manager"))
     .settings(basicSettings("manager"))
-    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribeSLF4J))
-
+    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribe))
   lazy val runner = project.in(file("runner"))
     .settings(basicSettings("runner"))
     .dependsOn(launch, manager)
-
+  lazy val pack = project.in(file("pack"))
+    .settings(basicSettings("pack"))
+    .settings(libraryDependencies ++= Seq(packr, proguard))
+    .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
     .dependsOn(launch, manager)
@@ -98,7 +99,9 @@ object Dependencies {
   val coursier = "com.github.alexarchambault" %% "coursier" % "1.0.0-M10"
   val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
   val metarx = "pl.metastack" %% "metarx" % "0.1.6"
+  val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
+  val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribeSLF4J = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2-SNAPSHOT"
+  val scribe = "com.outr.scribe" %% "scribe" % "1.2.2-SNAPSHOT"
 }

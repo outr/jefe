@@ -11,7 +11,7 @@ object Runner extends App with Logging {
 
   def loadConfiguration(): Configuration = {
     // TODO: remove this
-    Configuration.save(Configuration("com.outr.hw" %% "hello-world" % "latest.release", "com.outr.hw.HelloWorld", repositories = Repositories(maven = List(Maven.Repo1.tupled))))
+    Configuration.save(Configuration("com.outr.hw" %% "hello-world" % "latest.release", "com.outr.hw.HelloWorld", repositories = Repositories(ivyLocal = false, ivyCache = false, maven = List(Maven.Repo1.tupled))))
 
     // Load configuration
     Configuration.load()
