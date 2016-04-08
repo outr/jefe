@@ -20,17 +20,9 @@ object Pack extends App {
       file
     }
 
-    object Windows {
-      lazy val i586: File = load("https://bitbucket.org/alexkasko/openjdk-unofficial-builds/downloads/openjdk-1.7.0-u80-unofficial-windows-i586-image.zip")
-      lazy val amd64: File = load("https://bitbucket.org/alexkasko/openjdk-unofficial-builds/downloads/openjdk-1.7.0-u80-unofficial-windows-amd64-image.zip")
-    }
-    object Mac {
-      lazy val x86_64: File = load("https://bitbucket.org/alexkasko/openjdk-unofficial-builds/downloads/openjdk-1.7.0-u80-unofficial-macosx-x86_64-image.zip")
-    }
-    object Linux {
-      lazy val i586: File = load("https://bitbucket.org/alexkasko/openjdk-unofficial-builds/downloads/openjdk-1.7.0-u80-unofficial-linux-i586-image.zip")
-      lazy val amd64: File = load("https://bitbucket.org/alexkasko/openjdk-unofficial-builds/downloads/openjdk-1.7.0-u80-unofficial-linux-amd64-image.zip")
-    }
+    lazy val Windows = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-win_x64.zip")
+    lazy val Mac = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-macosx_x64.zip")
+    lazy val Linux = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-linux_x64.tar.gz")
   }
 
   val outputDir = new File("../output")
@@ -38,8 +30,18 @@ object Pack extends App {
   val assemblyJAR = new File("../runner/target/scala-2.11/jefe-runner-assembly-1.0.0.jar")
   var jar = new File(outputDir, "runner.jar")
 
-  optimize()
+  simpleOptimize()
+//  optimize()
   pack()
+
+  def simpleOptimize(): Unit = {
+    jar.delete()
+
+    val classList = new File(outputDir, "includes.list")
+    val wildCards = new File(outputDir, "wildcards.list")
+    val optimizer = new SimpleOptimizer("com.outr.jefe.runner.Runner", assemblyJAR, jar, classList, wildCards)
+    optimizer.optimize()
+  }
 
   def optimize(): Unit = {
     jar.delete()
@@ -88,10 +90,7 @@ object Pack extends App {
         |}
         |
         |-dontoptimize
-        |
         |-dontobfuscate
-        |-dontshrink
-        |-dontpreverify
         |
         |-verbose
       """.stripMargin
@@ -134,10 +133,7 @@ object Pack extends App {
       new Packr().pack(config)
     }
 
-    runFor(JRE.Windows.amd64, Platform.windows64)
-    runFor(JRE.Windows.i586, Platform.windows32)
-    runFor(JRE.Mac.x86_64, Platform.mac)
-    runFor(JRE.Linux.amd64, Platform.linux64)
-    runFor(JRE.Linux.i586, Platform.linux32)
+    runFor(JRE.Windows, Platform.windows64)
+    runFor(JRE.Mac, Platform.mac)
   }
 }

@@ -2,22 +2,22 @@ package com.outr.jefe.runner
 
 import java.awt.GraphicsEnvironment
 
-import com.outr.jefe.launch.Launcher
+import com.outr.jefe.launch.{Launcher, LauncherInstance, LauncherStatus}
 import com.outr.jefe.repo._
 import com.outr.scribe.Logging
 
 object Runner extends App with Logging {
-  start(loadConfiguration())
+  val instance = start(loadConfiguration())
 
   def loadConfiguration(): Configuration = {
     // TODO: remove this
-    Configuration.save(Configuration("com.outr.hw" %% "hello-world" % "latest.release", "com.outr.hw.HelloWorld", repositories = Repositories(ivyLocal = false, ivyCache = false, maven = List(Maven.Repo1.tupled))))
+    Configuration.save(Configuration("com.outr.hw" %% "hello-world" % "latest", "com.outr.hw.HelloWorld"))
 
     // Load configuration
     Configuration.load()
   }
 
-  def start(configuration: Configuration): Unit = {
+  def start(configuration: Configuration): LauncherInstance = {
     val monitor = if (!configuration.showDialogIfPossible || GraphicsEnvironment.isHeadless) {
       Monitor.Console
     } else {
@@ -28,5 +28,12 @@ object Runner extends App with Logging {
     val launcher = new Launcher(configuration.mainClass, files)
     val instance = launcher.classLoaded()
     instance.start()
+    instance
+  }
+
+  def waitFor(): Unit = {
+    while (instance.status.get != LauncherStatus.Finished) {
+      Thread.sleep(50)
+    }
   }
 }

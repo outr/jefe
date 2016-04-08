@@ -2,8 +2,6 @@ package com.outr.jefe.launch
 
 import java.io.File
 
-import pl.metastack.metarx.{StateChannel, Var}
-
 import scala.collection.mutable.ListBuffer
 import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
 

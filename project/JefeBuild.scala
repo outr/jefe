@@ -103,5 +103,5 @@ object Dependencies {
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribe = "com.outr.scribe" %% "scribe" % "1.2.2-SNAPSHOT"
+  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2-SNAPSHOT"
 }
