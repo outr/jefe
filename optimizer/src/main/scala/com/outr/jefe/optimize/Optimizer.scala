@@ -1,17 +1,17 @@
-package com.outr.jefe.pack
+package com.outr.jefe.optimize
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{File, FileOutputStream}
 import java.net.URLClassLoader
-import java.util.zip.{ZipEntry, ZipFile, ZipInputStream, ZipOutputStream}
+import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import com.outr.scribe.Logging
 import org.powerscala.StringUtil
-import org.powerscala.io._
+import org.powerscala.io.IO
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 
-class SimpleOptimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, wildcardsList: File) extends URLClassLoader(Array(inJAR.toURI.toURL), null) with Logging {
+class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, wildcardsList: File) extends URLClassLoader(Array(inJAR.toURI.toURL), null) with Logging {
   private var classes = Set.empty[String]
   private val wildcards = if (wildcardsList.exists()) {
     IO.stream(wildcardsList, new StringBuilder).toString.split("\n").map(_.trim).toList
@@ -97,5 +97,33 @@ class SimpleOptimizer(mainClass: String, inJAR: File, outJAR: File, classList: F
       logger.debug(s"Entry: $fullName")
       write(in, entries.tail, out)
     }
+  }
+}
+
+object Optimizer extends App {
+  if (args.length < 2) exitWithError("usage: optimizer <mainClass> <input JAR> (output JAR) (classlist file [includes.list]) (wildcards file [wildcards.list])")
+
+  val mainClass = args(0)
+  val inputJAR = new File(args(1))
+  if (!inputJAR.exists()) exitWithError(s"The input JAR does not exist: ${inputJAR.getAbsolutePath}")
+  val outputJAR = new File(argOrElse(2, {
+    val path = inputJAR.getAbsolutePath
+    s"${path.substring(0, path.length - 4)}-optimized.jar"
+  }))
+  val classListFile = new File(argOrElse(3, "includes.list"))
+  val wildcardsFile = new File(argOrElse(4, "wildcards.list"))
+
+  val optimizer = new Optimizer(mainClass, inputJAR, outputJAR, classListFile, wildcardsFile)
+  optimizer.optimize()
+
+  private def argOrElse(index: Int, default: String): String = if (args.length > index) {
+    args(index)
+  } else {
+    default
+  }
+
+  private def exitWithError(message: String): Unit = {
+    System.err.println(message)
+    System.exit(1)
   }
 }

@@ -5,8 +5,9 @@ import java.net.URL
 
 import com.badlogicgames.packr.Packr
 import com.badlogicgames.packr.Packr.{Config, Platform}
+import com.outr.jefe.optimize.Optimizer
 import org.powerscala.io._
-import proguard.{ClassPathEntry, Configuration, ConfigurationParser, ProGuard}
+import proguard.{Configuration, ConfigurationParser, ProGuard}
 
 import scala.collection.JavaConversions._
 
@@ -39,7 +40,7 @@ object Pack extends App {
 
     val classList = new File(outputDir, "includes.list")
     val wildCards = new File(outputDir, "wildcards.list")
-    val optimizer = new SimpleOptimizer("com.outr.jefe.runner.Runner", assemblyJAR, jar, classList, wildCards)
+    val optimizer = new Optimizer("com.outr.jefe.runner.Runner", assemblyJAR, jar, classList, wildCards)
     optimizer.optimize()
   }
 

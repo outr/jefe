@@ -1,5 +1,3 @@
-import com.typesafe.sbt.packager.jdkpackager.JDKPackagerPlugin
-import com.typesafe.sbt.SbtNativePackager.autoImport._
 import sbt.Keys._
 import sbt._
 
@@ -19,9 +17,6 @@ object JefeBuild extends Build {
       Resolver.typesafeRepo("releases")
     ),
     fork := true,
-    NativePackagerKeys.maintainer := "OUTR Technologies, LLC",
-    packageSummary := "Example summary",
-    packageDescription := "Example description",
     publishTo <<= version {
       (v: String) =>
         val nexus = "https://oss.sonatype.org/"
@@ -68,14 +63,16 @@ object JefeBuild extends Build {
   lazy val runner = project.in(file("runner"))
     .settings(basicSettings("runner"))
     .dependsOn(launch, manager)
+  lazy val optimizer = project.in(file("optimizer"))
+    .settings(basicSettings("optimizer"))
+    .settings(libraryDependencies ++= Seq(powerscala, scribe))
   lazy val pack = project.in(file("pack"))
     .settings(basicSettings("pack"))
     .settings(libraryDependencies ++= Seq(packr, proguard))
-    .dependsOn(runner)
+    .dependsOn(runner, optimizer)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
     .dependsOn(launch, manager)
-    .enablePlugins(JDKPackagerPlugin)
 }
 
 object Details {
