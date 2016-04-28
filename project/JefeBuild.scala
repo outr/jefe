@@ -97,8 +97,8 @@ object Dependencies {
   val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
   val metarx = "pl.metastack" %% "metarx" % "0.1.6"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
-  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0-SNAPSHOT"
+  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2-SNAPSHOT"
+  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2"
 }

@@ -31,9 +31,9 @@ object Pack extends App {
   val assemblyJAR = new File("../runner/target/scala-2.11/jefe-runner-assembly-1.0.0.jar")
   var jar = new File(outputDir, "runner.jar")
 
-  simpleOptimize()
-//  optimize()
-  pack()
+//  simpleOptimize()
+  optimize()
+//  pack()
 
   def simpleOptimize(): Unit = {
     jar.delete()
@@ -92,6 +92,7 @@ object Pack extends App {
         |
         |-dontoptimize
         |-dontobfuscate
+        |-ignorewarnings
         |
         |-verbose
       """.stripMargin
