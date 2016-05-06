@@ -1,6 +1,8 @@
 import sbt.Keys._
 import sbt._
 
+import sbtassembly.AssemblyKeys._
+
 object JefeBuild extends Build {
   import Dependencies._
 
@@ -62,6 +64,7 @@ object JefeBuild extends Build {
     .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribe))
   lazy val runner = project.in(file("runner"))
     .settings(basicSettings("runner"))
+    .settings(assemblyJarName in assembly := "runner.jar")
     .dependsOn(launch, manager)
   lazy val optimizer = project.in(file("optimizer"))
     .settings(basicSettings("optimizer"))
@@ -70,6 +73,9 @@ object JefeBuild extends Build {
     .settings(basicSettings("pack"))
     .settings(libraryDependencies ++= Seq(packr, proguard))
     .dependsOn(runner, optimizer)
+  lazy val server = project.in(file("server"))
+    .settings(basicSettings("server"))
+    .settings(libraryDependencies ++= Seq(finagleHttp))
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
     .dependsOn(launch, manager)
@@ -95,6 +101,7 @@ object Details {
 object Dependencies {
   val coursier = "com.github.alexarchambault" %% "coursier" % "1.0.0-M10"
   val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
+  val finagleHttp = "com.twitter" %% "finagle-http" % "6.35.0"
   val metarx = "pl.metastack" %% "metarx" % "0.1.6"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
   val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0"
