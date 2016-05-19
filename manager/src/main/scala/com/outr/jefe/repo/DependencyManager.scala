@@ -2,14 +2,19 @@ package com.outr.jefe.repo
 
 import java.io.File
 
+import com.outr.scribe.Logging
+
 import scalaz.concurrent.Task
 
-case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = Monitor.Console) {
+case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = Monitor.Console) extends Logging {
   /**
     * Optionally returns the latest VersionedDependency for the supplied Dependency
     */
   def latest(dependency: Dependency): Option[VersionedDependency] = {
-    Repository.info(dependency, repositories).map(_.latest)
+    logger.info(s"Looking up latest version of $dependency...")
+    val latest = Repository.info(dependency, repositories).map(_.latest)
+    logger.info(s"Latest version: $latest")
+    latest
   }
 
   /**

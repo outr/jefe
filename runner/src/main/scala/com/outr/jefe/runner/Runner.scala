@@ -1,36 +1,55 @@
 package com.outr.jefe.runner
 
 import java.awt.GraphicsEnvironment
+import java.io.File
 
 import com.outr.jefe.launch.{Launcher, LauncherInstance, LauncherStatus}
 import com.outr.jefe.repo._
 import com.outr.scribe.Logging
 
+class Arguments(args: Array[String]) {
+  private var entries = args.toList
+
+  def containsAll(keys: String*): Boolean = keys.forall(contains)
+
+  def contains(key: String): Boolean = entries.exists(_.startsWith(s"$key="))
+
+  def takeOrElse(key: String, default: => String): String = entries.find(_.startsWith(s"$key=")) match {
+    case Some(value) => {
+      entries = entries.filterNot(_ == value)
+      value.substring(key.length + 1)
+    }
+    case None => default
+  }
+
+  def take(key: String): String = takeOrElse(key, throw new RuntimeException(s"Unable to find $key in ${args.mkString(", ")}"))
+
+  def leftOvers: Seq[String] = entries
+}
+
 object Runner extends Logging {
   def main(args: Array[String]): Unit = {
-    val map = args.collect {
-      case s if s.indexOf('=') != 1 => s.substring(0, s.indexOf('=')) -> s.substring(s.indexOf('=') + 1)
-    }.toMap
-    if (!map.contains("groupId") || !map.contains("artifactId") || !map.contains("mainClass")) {
-      fail("Usage: java -jar runner.jar groupId=com.company artifactId=project mainClass=com.company.MyClass")
+    val a = new Arguments(args)
+    val configuration: Option[Configuration] = if (!a.containsAll("groupId", "artifactId", "mainClass")) {
+      val configFile = new File(a.takeOrElse("config", "config"))
+      if (configFile.exists()) {
+        Option(Configuration.load(configFile))
+      } else {
+        fail("Usage: java -jar runner.jar groupId=com.company artifactId=project (version=1.0.0|latest) mainClass=com.company.MyClass arguments")
+        None
+      }
+    } else {
+      val groupId = a.take("groupId")
+      val artifactId = a.take("artifactId")
+      val mainClass = a.take("mainClass")
+      val version = a.takeOrElse("version", "latest")
+      Some(Configuration(groupId %% artifactId % version, mainClass, a.leftOvers.toArray))
     }
-    val groupId = map("groupId")
-    val artifactId = map("artifactId")
-    val mainClass = map("mainClass")
-    val configuration = Configuration(groupId %% artifactId % "latest", mainClass)
-    run(configuration)
+    configuration.foreach(run(_))
   }
 
   def run(configuration: Configuration): LauncherInstance = {
     start(configuration)
-  }
-
-  def loadConfiguration(): Configuration = {
-    // TODO: remove this
-    Configuration.save(Configuration("com.outr.hw" %% "hello-world" % "latest", "com.outr.hw.HelloWorld"))
-
-    // Load configuration
-    Configuration.load()
   }
 
   private def fail(message: String): Unit = {
@@ -44,10 +63,15 @@ object Runner extends Logging {
     } else {
       Monitor.Dialog
     }
+    logger.info("Initializing dependency manager...")
     val manager = DependencyManager(configuration.repositories.list, monitor)
+    logger.info("Resolving dependencies...")
     val files = manager.resolve(configuration.dependency)
-    val launcher = new Launcher(configuration.mainClass, files)
+    logger.info("Creating launcher...")
+    val launcher = new Launcher(configuration.mainClass, files, configuration.args)
+    logger.info("Creating launcher instance...")
     val instance = launcher.classLoaded()
+    logger.info("Starting application...")
     instance.start()
     instance
   }
