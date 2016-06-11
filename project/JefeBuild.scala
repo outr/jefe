@@ -53,7 +53,7 @@ object JefeBuild extends Build {
   )
 
   lazy val root = project.in(file("."))
-    .aggregate(launch, manager, runner, example)
+    .aggregate(launch, manager, runner, optimizer, pack, server, example)
     .settings(basicSettings("root"))
     .settings(publishArtifact := false)
   lazy val launch = project.in(file("launch"))
@@ -75,7 +75,8 @@ object JefeBuild extends Build {
     .dependsOn(runner, optimizer)
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
-    .settings(libraryDependencies ++= Seq(finagleHttp, undertowCore, undertowWebSockets))
+    .settings(libraryDependencies ++= Seq(undertow))
+    .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
     .dependsOn(launch, manager)
@@ -99,15 +100,13 @@ object Details {
 }
 
 object Dependencies {
-  val coursier = "com.github.alexarchambault" %% "coursier" % "1.0.0-M10"
-  val coursierCache = "com.github.alexarchambault" %% "coursier-cache" % "1.0.0-M10"
-  val finagleHttp = "com.twitter" %% "finagle-http" % "6.35.0"
-  val metarx = "pl.metastack" %% "metarx" % "0.1.6"
+  val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M12-1"
+  val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M12-1"
+  val metarx = "pl.metastack" %% "metarx" % "0.1.7"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
-  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.0"
+  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.1"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.2"
-  val undertowCore = "io.undertow" % "undertow-core" % "1.3.22.Final"
-  val undertowWebSockets = "io.undertow" % "undertow-websockets-jsr" % "1.3.22.Final"
+  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.3"
+  val undertow = "io.undertow" % "undertow-core" % "1.4.0.CR1"
 }
