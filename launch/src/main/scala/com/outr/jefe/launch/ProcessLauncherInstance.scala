@@ -6,18 +6,23 @@ class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance 
   override def start(): Unit = {
     _status := LauncherStatus.Starting
     process
-    new Thread {      // TODO: handle this better
-    override def run(): Unit = {
-      _status := LauncherStatus.Running
-      while(process.isAlive) {
-        Thread.sleep(10)
-      }
-      val exitValue = process.exitValue()
-      if (exitValue == 0) {
+    new Thread {
+      // TODO: handle this better
+      override def run(): Unit = {
+        _status := LauncherStatus.Running
+        while (process.isAlive) {
+          Thread.sleep(10)
+        }
+        val exitValue = process.exitValue()
+        if (exitValue == 0) {
 
+        }
+        _status := LauncherStatus.Finished
       }
-      _status := LauncherStatus.Finished
     }
-    }
+  }
+
+  override def stop(): Unit = {
+    process.destroy()
   }
 }

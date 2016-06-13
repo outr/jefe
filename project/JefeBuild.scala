@@ -75,7 +75,7 @@ object JefeBuild extends Build {
     .dependsOn(runner, optimizer)
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
-    .settings(libraryDependencies ++= Seq(undertow))
+    .settings(libraryDependencies ++= Seq(undertowCore))
     .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
@@ -108,5 +108,5 @@ object Dependencies {
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.3"
-  val undertow = "io.undertow" % "undertow-core" % "1.4.0.CR1"
+  val undertowCore = "io.undertow" % "undertow-core" % "1.4.0.CR1"
 }

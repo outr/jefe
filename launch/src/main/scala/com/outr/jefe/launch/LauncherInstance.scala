@@ -10,4 +10,6 @@ trait LauncherInstance {
   val error: StateChannel[Option[Throwable]] = _error
 
   def start(): Unit
+
+  def stop(): Unit
 }

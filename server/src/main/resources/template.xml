@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
     <proxy>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
         <inbound>
             <domain>hyperscala.org</domain>
             <domain>www.hyperscala.org</domain>
             <domain>hyperscala.com</domain>
             <domain>www.hyperscala.com</domain>
         </inbound>
-        <outbound>
-            <host>127.0.0.1</host>
-            <port>8888</port>
-        </outbound>
+        <outbound>http://74.208.78.134</outbound>
     </proxy>
     <application>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
         <type>dependency</type>
-        <group>org.hyperscala</group>
-        <artifact>hyperscala-site</artifact>
-        <version>latest</version>
-        <mainClass>org.hyperscala.site.HyperscalaSite</mainClass>
+        <group>com.outr.hw</group>
+        <artifact>hello-world</artifact>
+        <version>latest.release</version>
+        <mainClass>com.outr.hw.HelloWorld</mainClass>
         <arg>-port</arg>
         <arg>8888</arg>
     </application>

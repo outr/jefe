@@ -19,4 +19,6 @@ class ClassLoaderLauncherInstance(classLoader: ClassLoader, runner: () => Unit) 
     _status := LauncherStatus.Starting
     thread.start()
   }
+
+  override def stop(): Unit = throw new RuntimeException("No way to stop a ClassLoaderLauncherInstance!")
 }

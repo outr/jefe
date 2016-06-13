@@ -11,7 +11,8 @@ case class Configuration(dependency: VersionedDependency,
                          mainClass: String,
                          args: Array[String] = Array.empty,
                          showDialogIfPossible: Boolean = true,
-                         repositories: Repositories = Repositories())
+                         repositories: Repositories = Repositories(),
+                         newProcess: Boolean = false)
 
 object Configuration {
   def load(file: File): Configuration = {
