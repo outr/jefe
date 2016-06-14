@@ -10,7 +10,8 @@ import pl.metastack.metarx.{Buffer, Sub}
 
 import scala.xml.{Elem, NodeSeq, XML}
 import com.outr.jefe.repo._
-import com.outr.scribe.Logging
+import com.outr.scribe.writer.FileWriter
+import com.outr.scribe.{LogHandler, Logger, Logging}
 import org.powerscala.io._
 
 object JefeServer extends Logging {
@@ -56,6 +57,8 @@ object JefeServer extends Logging {
     directory = new File(arguments.takeOrElse("directory", "."))
     val app = arguments.takeOrElse("app", "")
 
+    Logger.Root.addHandler(LogHandler(writer = FileWriter.Daily("jefe", new File(directory, "logs"))))
+
     action match {
       case "start" => {
         // TODO: support background
@@ -90,7 +93,7 @@ object JefeServer extends Logging {
 
     // Look at existing directories
     directory.listFiles().filter(_.isDirectory).foreach { dir =>
-      if (!dir.isHidden && !dir.getName.startsWith(".")) {
+      if (!dir.isHidden && !dir.getName.startsWith(".") && dir.getName != "logs") {
         dirNames += dir.getName
         updateDirectory(dir)
       }
