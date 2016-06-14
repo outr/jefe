@@ -76,6 +76,7 @@ object JefeBuild extends Build {
     .dependsOn(runner, optimizer)
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
+    .settings(assemblyJarName := s"${name.value}-${version.value}.jar")
     .settings(libraryDependencies ++= Seq(undertowCore, powerscalaCommand))
     .dependsOn(runner)
   lazy val example = project.in(file("example"))
