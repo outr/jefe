@@ -19,6 +19,7 @@ object JefeBuild extends Build {
       Resolver.typesafeRepo("releases")
     ),
     fork := true,
+    connectInput := true,
     publishTo <<= version {
       (v: String) =>
         val nexus = "https://oss.sonatype.org/"
@@ -75,7 +76,7 @@ object JefeBuild extends Build {
     .dependsOn(runner, optimizer)
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
-    .settings(libraryDependencies ++= Seq(undertowCore))
+    .settings(libraryDependencies ++= Seq(undertowCore, powerscalaCommand))
     .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
@@ -106,6 +107,7 @@ object Dependencies {
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
   val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2-SNAPSHOT"
   val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2-SNAPSHOT"
+  val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.3"
