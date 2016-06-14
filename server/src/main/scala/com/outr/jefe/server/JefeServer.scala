@@ -3,7 +3,7 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{URI, URL}
 
-import com.outr.jefe.launch.LauncherInstance
+import com.outr.jefe.launch.{Launcher, LauncherInstance}
 import com.outr.jefe.runner.{Arguments, Configuration, Runner}
 import pl.metastack.metarx.{Buffer, Sub}
 
@@ -105,6 +105,13 @@ object JefeServer {
       val mainClass = (a \ "mainClass").string
       val args = (a \ "arg").map(_.text)
       (a \ "type").string match {
+        case "jar" => {
+          val jar = new File(directory, (a \ "jar").string)
+          if (!jar.exists()) {
+            throw new RuntimeException(s"JAR doesn't exist: ${jar.getAbsolutePath}")
+          }
+          new JARAppConfig(enabled, jar, mainClass, args)
+        }
         case "war" => {
           val war = new File(directory, (a \ "war").string)
           if (!war.exists()) {
@@ -154,6 +161,27 @@ trait ApplicationConfig {
   def start(): Unit
 
   def stop(): Unit
+}
+
+class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, val args: Seq[String]) extends ApplicationConfig {
+  private var instance: Option[LauncherInstance] = None
+
+  override def start(): Unit = synchronized {
+    stop()
+
+    val l = new Launcher(mainClass, Seq(jar), args)
+    val li = l.process()
+    instance = Some(li)
+    li.start()
+  }
+
+  override def stop(): Unit = synchronized {
+    instance match {
+      case Some(li) => li.stop()
+      case None => // No instance
+    }
+    instance = None
+  }
 }
 
 class WARAppConfig(enabled: Boolean, war: File, port: Int) extends DependencyAppConfig(
