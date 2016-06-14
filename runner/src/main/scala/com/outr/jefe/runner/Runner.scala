@@ -77,8 +77,7 @@ object Runner extends Logging {
     val launcher = new Launcher(configuration.mainClass, files, configuration.args)
     logger.info("Creating launcher instance...")
     val instance = if (configuration.newProcess) {
-      // TODO: support vmargs
-      launcher.process()
+      launcher.process(configuration.workingDirectory, configuration.vmArgs: _*)
     } else {
       launcher.classLoaded()
     }

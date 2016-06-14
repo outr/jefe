@@ -10,6 +10,8 @@ import scala.collection.mutable.ListBuffer
 case class Configuration(dependency: VersionedDependency,
                          mainClass: String,
                          args: Array[String] = Array.empty,
+                         vmArgs: Array[String] = Array.empty,
+                         workingDirectory: File = new File("."),
                          showDialogIfPossible: Boolean = true,
                          repositories: Repositories = Repositories(),
                          newProcess: Boolean = false)

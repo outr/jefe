@@ -172,7 +172,7 @@ object JefeServer extends Logging {
           val group = (a \ "group").string
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
-          new DependencyAppConfig(enabled, group, artifact, version, mainClass, args)
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args)
         }
       }
     }
@@ -180,7 +180,8 @@ object JefeServer extends Logging {
   }
 
   def shutdown(): Unit = {
-    // TODO: shutdown
+    configurations.foreach(_.application.foreach(_.stop()))
+    ProxyServer.stop()
     System.exit(0)
   }
 
@@ -224,7 +225,7 @@ class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, v
     stop()
 
     val l = new Launcher(mainClass, Seq(jar), args)
-    val li = l.process()
+    val li = l.process(jar.getParentFile)
     instance = Some(li)
     li.start()
   }
@@ -240,6 +241,7 @@ class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, v
 
 class WARAppConfig(enabled: Boolean, war: File, port: Int) extends DependencyAppConfig(
   enabled,
+  war.getParentFile,
   "org.eclipse.jetty",
   "jetty-runner",
   "9.3.9.v20160517",
@@ -249,6 +251,7 @@ class WARAppConfig(enabled: Boolean, war: File, port: Int) extends DependencyApp
 )
 
 class DependencyAppConfig(val enabled: Boolean,
+                          val workingDirectory: File,
                           val group: String,
                           val artifact: String,
                           val version: String,
@@ -265,7 +268,7 @@ class DependencyAppConfig(val enabled: Boolean,
     } else {
       group % artifact % version
     }
-    val config = Configuration(dependency, mainClass, args.toArray, newProcess = true)
+    val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true)
     val li = Runner.run(config)
     instance = Some(li)
     li.start()

@@ -15,12 +15,20 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
   }
 
   override def process(command: Command): Unit = command match {
+    case Help => println(
+      """Commands:
+        | help: this command
+        | list: list all the application configurations currently loaded
+        | update: update all directories checking for changes
+        | quit: shuts down all applications and terminates jefe
+      """.stripMargin)
     case ListApps => JefeServer.list()
     case Update => JefeServer.updateDirectories()
     case Quit => JefeServer.shutdown()
   }
 
   override def toCommand(line: String): Option[Command] = line.toLowerCase match {
+    case "help" | "?" => Some(Help)
     case "list" => Some(ListApps)
     case "update" => Some(Update)
     case "quit" | "exit" => Some(Quit)
@@ -31,6 +39,8 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
     case _ => throw new UnsupportedOperationException(s"Command cannot be sent: $command.")
   }
 }
+
+object Help extends Command
 
 object ListApps extends Command
 
