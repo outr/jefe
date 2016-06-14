@@ -61,14 +61,14 @@ object JefeBuild extends Build {
     .settings(libraryDependencies ++= Seq(metarx, scribe))
   lazy val manager = project.in(file("manager"))
     .settings(basicSettings("manager"))
-    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscala, scalaXML, scribe))
+    .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscalaCore, powerscalaIO, scalaXML, scribe))
   lazy val runner = project.in(file("runner"))
     .settings(basicSettings("runner"))
     .settings(assemblyJarName in assembly := "runner.jar")
     .dependsOn(launch, manager)
   lazy val optimizer = project.in(file("optimizer"))
     .settings(basicSettings("optimizer"))
-    .settings(libraryDependencies ++= Seq(powerscala, scribe))
+    .settings(libraryDependencies ++= Seq(powerscalaCore, scribe))
   lazy val pack = project.in(file("pack"))
     .settings(basicSettings("pack"))
     .settings(libraryDependencies ++= Seq(packr, proguard))
@@ -104,7 +104,8 @@ object Dependencies {
   val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M12-1"
   val metarx = "pl.metastack" %% "metarx" % "0.1.7"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
-  val powerscala = "org.powerscala" %% "powerscala-core" % "2.0.1"
+  val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2-SNAPSHOT"
+  val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.3"
