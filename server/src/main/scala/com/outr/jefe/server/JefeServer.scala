@@ -3,7 +3,7 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{URI, URL, URLEncoder}
 
-import com.outr.jefe.launch.{Launcher, LauncherInstance}
+import com.outr.jefe.launch.{Launcher, LauncherInstance, ProcessLauncherInstance}
 import com.outr.jefe.runner.{Arguments, Configuration, Runner}
 import pl.metastack.metarx.Buffer
 
@@ -90,7 +90,7 @@ object JefeServer extends Logging {
 
   def list(): String = {
     val heading = s"Listing ${configurations.get.size} configuration(s):"
-    val items = configurations.get.map(appConfig => s"${appConfig.name}: ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
+    val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.flatMap(_.pid)}): ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
     s"$heading\n$items"
   }
 
@@ -218,6 +218,10 @@ trait Inbound
 case class InboundDomain(domain: String) extends Inbound
 
 trait ApplicationConfig {
+  def instance: Option[ProcessLauncherInstance]
+
+  def pid: Option[Int] = instance.map(_.processId)
+
   def enabled: Boolean
 
   def mainClass: String
@@ -230,7 +234,7 @@ trait ApplicationConfig {
 }
 
 class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, val args: Seq[String]) extends ApplicationConfig {
-  private var instance: Option[LauncherInstance] = None
+  var instance: Option[ProcessLauncherInstance] = None
 
   override def start(): Unit = synchronized {
     stop()
@@ -269,7 +273,7 @@ class DependencyAppConfig(val enabled: Boolean,
                           val mainClass: String,
                           val args: Seq[String],
                           val scala: Boolean = true) extends ApplicationConfig {
-  private var instance: Option[LauncherInstance] = None
+  var instance: Option[ProcessLauncherInstance] = None
 
   override def start(): Unit = synchronized {
     stop()
@@ -280,9 +284,8 @@ class DependencyAppConfig(val enabled: Boolean,
       group % artifact % version
     }
     val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true)
-    val li = Runner.run(config)
+    val li = Runner.run(config).asInstanceOf[ProcessLauncherInstance]
     instance = Some(li)
-    li.start()
   }
 
   override def stop(): Unit = synchronized {

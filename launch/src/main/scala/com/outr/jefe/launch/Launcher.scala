@@ -20,7 +20,7 @@ class Launcher(mainClass: String,
     new ClassLoaderLauncherInstance(classLoader, () => main.invoke(null, args.toArray))
   }
 
-  def process(workingDirectory: File, vmArgs: String*): LauncherInstance = {
+  def process(workingDirectory: File, vmArgs: String*): ProcessLauncherInstance = {
     val extension = if (fileSeparator == "/") "" else "w.exe"
     val javaPath = s"${javaHome}${fileSeparator}bin${fileSeparator}java$extension"
     val b = ListBuffer.empty[String]
@@ -36,7 +36,6 @@ class Launcher(mainClass: String,
     }
     val builder = new ProcessBuilder(b: _*)
     builder.directory(workingDirectory)
-    println(s"Working directory: ${workingDirectory.getAbsolutePath}")
     new ProcessLauncherInstance(builder)
   }
 }

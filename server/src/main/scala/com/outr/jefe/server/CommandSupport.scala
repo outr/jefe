@@ -22,7 +22,7 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
         | update: update all directories checking for changes
         | quit: shuts down all applications and terminates jefe
       """.stripMargin)
-    case ListApps => JefeServer.list()
+    case ListApps => println(JefeServer.list())
     case Update => JefeServer.updateDirectories()
     case Quit => JefeServer.shutdown()
   }

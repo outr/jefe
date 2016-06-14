@@ -2,8 +2,13 @@ package com.outr.jefe.launch
 
 class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance {
   private lazy val process = builder.inheritIO().start()
+  lazy val processId: Int = {
+    val field = process.getClass.getDeclaredFields.find(f => f.getName == "pid" || f.getName == "handle").get
+    field.setAccessible(true)
+    field.get(process).asInstanceOf[Int]
+  }
 
-  override def start(): Unit = {
+  override def start(): Unit = synchronized {
     _status := LauncherStatus.Starting
     process
     new Thread {
