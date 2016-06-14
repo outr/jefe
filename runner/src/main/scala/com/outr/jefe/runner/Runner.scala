@@ -35,7 +35,7 @@ object Runner extends Logging {
       if (configFile.exists()) {
         Option(Configuration.load(configFile))
       } else {
-        fail("Usage: java -jar runner.jar groupId=com.company artifactId=project (version=1.0.0|latest) mainClass=com.company.MyClass arguments")
+        fail("Usage: java -jar runner.jar groupId=com.company artifactId=project (version=1.0.0|latest) (scala=true|false) mainClass=com.company.MyClass arguments")
         None
       }
     } else {
@@ -43,7 +43,13 @@ object Runner extends Logging {
       val artifactId = a.take("artifactId")
       val mainClass = a.take("mainClass")
       val version = a.takeOrElse("version", "latest")
-      Some(Configuration(groupId %% artifactId % version, mainClass, a.leftOvers.toArray))
+      val scala = a.takeOrElse("scala", "true").toBoolean
+      val dep = if (scala) {
+        groupId %% artifactId % version
+      } else {
+        groupId % artifactId % version
+      }
+      Some(Configuration(dep, mainClass, a.leftOvers.toArray))
     }
     configuration.foreach(run(_))
   }

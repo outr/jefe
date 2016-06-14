@@ -65,12 +65,13 @@ object JefeServer {
         ProxyServer.port := port
         ProxyServer.password := password
 
-        monitor(directory)
+        //        monitor(directory)
 
-//        val config = loadConfiguration(getClass.getClassLoader.getResource("template.xml"))
-//        config.application.foreach(_.start())
-//        configurations += config
-//        ProxyServer.start()
+        val dir = new File(directory, "hyperscala.org")
+        val config = loadConfiguration(dir)
+        config.application.foreach(_.start())
+        configurations += config
+        ProxyServer.start()
       }
       case "stop" => {
 
@@ -85,7 +86,8 @@ object JefeServer {
 
   }
 
-  def loadConfiguration(config: URL): AppConfiguration = {
+  def loadConfiguration(directory: File): AppConfiguration = {
+    val config = new File(directory, "jefe.config.xml").toURI.toURL
     val xml = XML.load(config)
     val proxy = (xml \ "proxy").headOption.map { p =>
       val enabled = (p \ "enabled").bool
@@ -103,11 +105,19 @@ object JefeServer {
       val mainClass = (a \ "mainClass").string
       val args = (a \ "arg").map(_.text)
       (a \ "type").string match {
+        case "war" => {
+          val war = new File(directory, (a \ "war").string)
+          if (!war.exists()) {
+            throw new RuntimeException(s"WAR doesn't exist: ${war.getAbsolutePath}")
+          }
+          val port = (a \ "port").int
+          new WARAppConfig(enabled, war, port)
+        }
         case "dependency" => {
           val group = (a \ "group").string
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
-          DependencyAppConfig(enabled, group, artifact, version, mainClass, args)
+          new DependencyAppConfig(enabled, group, artifact, version, mainClass, args)
         }
       }
     }
@@ -116,8 +126,11 @@ object JefeServer {
 
   implicit class ExtraNode(n: NodeSeq) {
     def bool = n.headOption.exists(_.text.toBoolean)
+    def int = n.headOption.map(_.text.toInt).get
+
     def string = n.text
   }
+
 }
 
 case class AppConfiguration(proxy: Option[ProxyConfig],
@@ -133,25 +146,43 @@ case class InboundDomain(domain: String) extends Inbound
 
 trait ApplicationConfig {
   def enabled: Boolean
+
   def mainClass: String
+
   def args: Seq[String]
 
   def start(): Unit
+
   def stop(): Unit
 }
 
-case class DependencyAppConfig(enabled: Boolean,
-                               group: String,
-                               artifact: String,
-                               version: String,
-                               mainClass: String,
-                               args: Seq[String]) extends ApplicationConfig {
+class WARAppConfig(enabled: Boolean, war: File, port: Int) extends DependencyAppConfig(
+  enabled,
+  "org.eclipse.jetty",
+  "jetty-runner",
+  "9.3.9.v20160517",
+  "org.eclipse.jetty.runner.Runner",
+  List("--port", port.toString, war.getCanonicalPath),
+  scala = false
+)
+
+class DependencyAppConfig(val enabled: Boolean,
+                          val group: String,
+                          val artifact: String,
+                          val version: String,
+                          val mainClass: String,
+                          val args: Seq[String],
+                          val scala: Boolean = true) extends ApplicationConfig {
   private var instance: Option[LauncherInstance] = None
 
   override def start(): Unit = synchronized {
     stop()
 
-    val dependency = group %% artifact % version
+    val dependency = if (scala) {
+      group %% artifact % version
+    } else {
+      group % artifact % version
+    }
     val config = Configuration(dependency, mainClass, args.toArray, newProcess = true)
     val li = Runner.run(config)
     instance = Some(li)
