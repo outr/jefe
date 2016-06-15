@@ -9,6 +9,7 @@ import com.outr.scribe.{Level, LogHandler, Logger, Logging}
 import io.undertow.{Handlers, Undertow}
 import io.undertow.server.handlers.proxy.SimpleProxyClientProvider
 import io.undertow.server.{HttpHandler, HttpServerExchange}
+import io.undertow.util.Headers
 import pl.metastack.metarx.{Buffer, Sub}
 
 object ProxyServer extends Logging {
@@ -24,19 +25,48 @@ object ProxyServer extends Logging {
   private val instance: Sub[Option[Undertow]] = Sub(None)
   private object handler extends HttpHandler {
     override def handleRequest(exchange: HttpServerExchange): Unit = {
-      val found = domainProxies.get(exchange.getHostName) match {
-        case Some(handler) => {
-          handler.handleRequest(exchange)
-          true
+      exchange.getRequestPath match {
+        case "/jefe/stop" => authAction(exchange) {
+          JefeServer.shutdown()
+          "Shutting down server..."
         }
-        case None => {
-          logger.warn(s"No match for proxying domain: ${exchange.getRequestURL}")
-          false
+        case "/jefe/status" => authAction(exchange) {
+          "NOT YET IMPLEMENTED"
+        }
+        case "/jefe/list" => authAction(exchange) {
+          JefeServer.list()
+        }
+        case "/jefe/update" => authAction(exchange) {
+          JefeServer.updateDirectories()
+          "Updating directories..."
+        }
+        case _ => {
+          val found = domainProxies.get(exchange.getHostName) match {
+            case Some(handler) => {
+              handler.handleRequest(exchange)
+              true
+            }
+            case None => {
+              logger.warn(s"No match for proxying domain: ${exchange.getRequestURL}")
+              false
+            }
+          }
+          val peer = exchange.getConnection.getPeerAddress.asInstanceOf[InetSocketAddress]
+          access.info(s"Handler: ${if (found) "Found" else "Not found"}, URL: ${exchange.getRequestURL}, Client: ${peer.getHostName} (${peer.getAddress})")
         }
       }
-      val peer = exchange.getConnection.getPeerAddress.asInstanceOf[InetSocketAddress]
-      access.info(s"Handler: ${if (found) "Found" else "Not found"}, URL: ${exchange.getRequestURL}, Client: ${peer.getHostName} (${peer.getAddress})")
     }
+  }
+
+  def authAction(exchange: HttpServerExchange)(f: => String): Unit = {
+    val credentials = exchange.getQueryParameters.get("password").getFirst
+    val message = if (credentials != password.get) {
+      "Invalid credentials supplied"
+    } else {
+      f
+    }
+    exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, "text/plain")
+    exchange.getResponseSender.send(message)
   }
 
   JefeServer.configurations.changes.attach { changed =>

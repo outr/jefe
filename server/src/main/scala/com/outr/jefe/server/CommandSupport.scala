@@ -31,7 +31,7 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
     case "help" | "?" => Some(Help)
     case "list" => Some(ListApps)
     case "update" => Some(Update)
-    case "quit" | "exit" => Some(Quit)
+    case "quit" | "stop" | "exit" => Some(Quit)
     case _ => None
   }
 

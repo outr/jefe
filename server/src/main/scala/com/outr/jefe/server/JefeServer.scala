@@ -1,12 +1,11 @@
 package com.outr.jefe.server
 
 import java.io.File
-import java.net.{URI, URL}
-import java.nio.file.Path
+import java.net.{URI, URL, URLEncoder}
 
 import com.outr.jefe.launch.{Launcher, LauncherInstance}
 import com.outr.jefe.runner.{Arguments, Configuration, Runner}
-import pl.metastack.metarx.{Buffer, Sub}
+import pl.metastack.metarx.Buffer
 
 import scala.xml.{Elem, NodeSeq, XML}
 import com.outr.jefe.repo._
@@ -14,15 +13,17 @@ import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
 import org.powerscala.io._
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object JefeServer extends Logging {
   // TODO: support starting Docker instance
-  // TODO: inject communication utility into apps to control and access runtime info
 
   val configurations: Buffer[AppConfiguration] = Buffer()
   var directory: File = _
 
-  def main(temp: Array[String]): Unit = {
-    val args = Array("start", "directory=../servertest")
+  def main(args: Array[String]): Unit = {
+//    val args = Array("start", "directory=../servertest")
     if (args.isEmpty) {
       println(
         """Usage: jefe <command> (options)
@@ -73,18 +74,24 @@ object JefeServer extends Logging {
 
         CommandSupport.init()
       }
-      case "stop" => {}
-      case "status" => {}
-      case "list" => {}
-      case "update" => {}
+      case "stop" => send(host, port, password, "stop", Map.empty)
+      case "status" => send(host, port, password, "status", Map("app" -> app))
+      case "list" => send(host, port, password, "list", Map.empty)
+      case "update" => send(host, port, password, "update", Map.empty)
     }
   }
 
-  def list(): Unit = {
-    logger.info(s"Listing ${configurations.get.size} configuration(s):")
-    configurations.get.foreach { appConfig =>
-      logger.info(s"${appConfig.name}: ${appConfig.proxy} / ${appConfig.application}")
-    }
+  def send(host: String, port: Int, password: String, command: String, args: Map[String, String]): Unit = {
+    val argsString = (args + ("password" -> password)).map(t => s"${t._1}=${URLEncoder.encode(t._2, "UTF-8")}").mkString("&")
+    val url = new URL(s"http://$host:$port/jefe/$command?${argsString}")
+    val response = IO.stream(url.openStream(), new StringBuilder).toString
+    println(response)
+  }
+
+  def list(): String = {
+    val heading = s"Listing ${configurations.get.size} configuration(s):"
+    val items = configurations.get.map(appConfig => s"${appConfig.name}: ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
+    s"$heading\n$items"
   }
 
   def updateDirectories(): Unit = {
@@ -182,11 +189,12 @@ object JefeServer extends Logging {
     AppConfiguration(name, lastModified, proxy, app)
   }
 
-  def shutdown(): Unit = {
+  def shutdown(): Unit = Future({
+    Thread.sleep(1000)      // Wait for one second
     configurations.foreach(_.application.foreach(_.stop()))
     ProxyServer.stop()
     System.exit(0)
-  }
+  })
 
   implicit class ExtraNode(n: NodeSeq) {
     def bool = n.headOption.exists(_.text.toBoolean)
