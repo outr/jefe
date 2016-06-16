@@ -1,6 +1,10 @@
 package com.outr.jefe.launch
 
-class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance {
+import com.outr.scribe.Logging
+
+import scala.collection.JavaConversions._
+
+class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance with Logging {
   private lazy val process = builder.inheritIO().start()
   lazy val processId: Int = {
     val field = process.getClass.getDeclaredFields.find(f => f.getName == "pid" || f.getName == "handle").get
@@ -10,6 +14,7 @@ class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance 
 
   override def start(): Unit = synchronized {
     _status := LauncherStatus.Starting
+    logger.debug(s"Starting: ${builder.command().mkString(" ")}")
     process
     new Thread {
       // TODO: handle this better

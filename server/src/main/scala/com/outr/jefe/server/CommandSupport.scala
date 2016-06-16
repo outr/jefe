@@ -1,6 +1,6 @@
 package com.outr.jefe.server
 
-import com.outr.scribe.Logging
+import com.outr.scribe.{Logging, Platform}
 import org.powerscala.command.{Command, CommandImplementation, CommandInterpreter, CommandManager, StandardIO}
 
 object CommandSupport extends CommandManager with CommandInterpreter with Logging {
@@ -14,22 +14,29 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
   def init(): Unit = {
   }
 
-  override def process(command: Command): Unit = command match {
-    case Help => println(
-      """Commands:
-        | help: this command
-        | list: list all the application configurations currently loaded
-        | update: update all directories checking for changes
-        | quit: shuts down all applications and terminates jefe
-      """.stripMargin)
-    case ListApps => println(JefeServer.list())
-    case Update => JefeServer.updateDirectories()
-    case Quit => JefeServer.shutdown()
+  override def process(command: Command): Unit = try {
+    command match {
+      case Help => println(
+        """Commands:
+          | help: this command
+          | list: list all the application configurations currently loaded
+          | status: show status information for all applications
+          | update: update all directories checking for changes
+          | quit: shuts down all applications and terminates jefe
+        """.stripMargin)
+      case ListApps => println(JefeServer.list())
+      case Status => println(JefeServer.status())
+      case Update => JefeServer.updateDirectories()
+      case Quit => JefeServer.shutdown()
+    }
+  } catch {
+    case t: Throwable => logger.error(Platform.throwable2String(t))
   }
 
   override def toCommand(line: String): Option[Command] = line.toLowerCase match {
     case "help" | "?" => Some(Help)
     case "list" => Some(ListApps)
+    case "status" => Some(Status)
     case "update" => Some(Update)
     case "quit" | "stop" | "exit" => Some(Quit)
     case _ => None
@@ -39,6 +46,8 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
     case _ => throw new UnsupportedOperationException(s"Command cannot be sent: $command.")
   }
 }
+
+object Status extends Command
 
 object Help extends Command
 

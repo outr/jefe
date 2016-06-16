@@ -38,10 +38,10 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       val conflicts = resolution.conflicts
 
       if (errors.nonEmpty) {
-        throw new RuntimeException(s"Errors: $errors")
+        logger.warn(s"Errors for ($vd): $errors")
       }
       if (conflicts.nonEmpty) {
-        throw new RuntimeException(s"Conflicts: $conflicts")
+        throw new RuntimeException(s"Conflicts for ($vd): $conflicts")
       }
       val localArtifacts = Task.gatherUnordered(
         resolution.artifacts.map(Cache.file(_, logger = Some(monitor.cacheLogger)).run)
@@ -50,7 +50,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
         case Left(err) => err
       }
       if (fileErrors.nonEmpty) {
-        throw new RuntimeException(s"File Errors: $fileErrors")
+        throw new RuntimeException(s"File Errors for ($vd): $fileErrors")
       }
       localArtifacts.map(_.toEither).collect {
         case Right(f) => f

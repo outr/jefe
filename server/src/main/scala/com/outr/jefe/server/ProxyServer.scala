@@ -3,6 +3,7 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{InetSocketAddress, URI}
 
+import com.outr.jefe.server.config.InboundDomain
 import com.outr.scribe.formatter.Formatter
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{Level, LogHandler, Logger, Logging}
@@ -31,7 +32,7 @@ object ProxyServer extends Logging {
           "Shutting down server..."
         }
         case "/jefe/status" => authAction(exchange) {
-          "NOT YET IMPLEMENTED"
+          JefeServer.status()
         }
         case "/jefe/list" => authAction(exchange) {
           JefeServer.list()

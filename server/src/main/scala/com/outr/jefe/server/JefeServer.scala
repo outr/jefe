@@ -3,15 +3,15 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{URI, URL, URLEncoder}
 
-import com.outr.jefe.launch.{Launcher, LauncherInstance, ProcessLauncherInstance}
-import com.outr.jefe.runner.{Arguments, Configuration, Runner}
+import com.outr.jefe.runner.Arguments
 import pl.metastack.metarx.Buffer
 
 import scala.xml.{Elem, NodeSeq, XML}
-import com.outr.jefe.repo._
+import com.outr.jefe.server.config._
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
 import org.powerscala.io._
+import org.powerscala.util.NetUtil
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -88,6 +88,11 @@ object JefeServer extends Logging {
     println(response)
   }
 
+  def status(): String = configurations.get.map { appConfig =>
+    val stats = appConfig.application.flatMap(_.processMonitor.map(_.stats())).map(_.toString.trim).getOrElse("")
+    s"${appConfig.name}: PID=${appConfig.application.flatMap(_.pid).getOrElse(-1)}\n\t$stats"
+  }.mkString("\n\n")
+
   def list(): String = {
     val heading = s"Listing ${configurations.get.size} configuration(s):"
     val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.flatMap(_.pid)}): ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
@@ -162,13 +167,23 @@ object JefeServer extends Logging {
       val enabled = (a \ "enabled").bool
       val mainClass = (a \ "mainClass").string
       val args = (a \ "arg").map(_.text)
+      val jmxPort = NetUtil.availableTCPPort()
+      val additionalArgs = List(
+        "-Dcom.sun.management.jmxremote=true",
+        "-Djava.rmi.server.hostname=127.0.0.1",
+        s"-Dcom.sun.management.jmxremote.port=$jmxPort",
+        "-Dcom.sun.management.jmxremote.authenticate=false",
+        "-Dcom.sun.management.jmxremote.ssl=false",
+        "-Dcom.sun.management.jmxremote.local.only=false"
+      )
+      val vmArgs = additionalArgs ::: (a \ "vmargs").map(_.text).toList
       (a \ "type").string match {
         case "jar" => {
           val jar = new File(directory, (a \ "jar").string)
           if (!jar.exists()) {
             throw new RuntimeException(s"JAR doesn't exist: ${jar.getAbsolutePath}")
           }
-          new JARAppConfig(enabled, jar, mainClass, args)
+          new JARAppConfig(enabled, jar, mainClass, args, jmxPort, vmArgs)
         }
         case "war" => {
           val war = new File(directory, (a \ "war").string)
@@ -176,13 +191,14 @@ object JefeServer extends Logging {
             throw new RuntimeException(s"WAR doesn't exist: ${war.getAbsolutePath}")
           }
           val port = (a \ "port").int
-          new WARAppConfig(enabled, war, port)
+          new WARAppConfig(enabled, war, port, jmxPort, vmArgs)
         }
         case "dependency" => {
           val group = (a \ "group").string
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
-          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args)
+          val scala = (a \ "scala").headOption.forall(_.text.toBoolean)
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, scala)
         }
       }
     }
@@ -201,98 +217,5 @@ object JefeServer extends Logging {
     def int = n.headOption.map(_.text.toInt).get
 
     def string = n.text
-  }
-}
-
-case class AppConfiguration(name: String,
-                            lastModified: Long,
-                            proxy: Option[ProxyConfig],
-                            application: Option[ApplicationConfig])
-
-case class ProxyConfig(enabled: Boolean = false,
-                       inbound: List[Inbound],
-                       outbound: URI)
-
-trait Inbound
-
-case class InboundDomain(domain: String) extends Inbound
-
-trait ApplicationConfig {
-  def instance: Option[ProcessLauncherInstance]
-
-  def pid: Option[Int] = instance.map(_.processId)
-
-  def enabled: Boolean
-
-  def mainClass: String
-
-  def args: Seq[String]
-
-  def start(): Unit
-
-  def stop(): Unit
-}
-
-class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, val args: Seq[String]) extends ApplicationConfig {
-  var instance: Option[ProcessLauncherInstance] = None
-
-  override def start(): Unit = synchronized {
-    stop()
-
-    val l = new Launcher(mainClass, Seq(jar), args)
-    val li = l.process(jar.getParentFile)
-    instance = Some(li)
-    li.start()
-  }
-
-  override def stop(): Unit = synchronized {
-    instance match {
-      case Some(li) => li.stop()
-      case None => // No instance
-    }
-    instance = None
-  }
-}
-
-class WARAppConfig(enabled: Boolean, war: File, port: Int) extends DependencyAppConfig(
-  enabled,
-  war.getParentFile,
-  "org.eclipse.jetty",
-  "jetty-runner",
-  "9.3.9.v20160517",
-  "org.eclipse.jetty.runner.Runner",
-  List("--port", port.toString, war.getCanonicalPath),
-  scala = false
-)
-
-class DependencyAppConfig(val enabled: Boolean,
-                          val workingDirectory: File,
-                          val group: String,
-                          val artifact: String,
-                          val version: String,
-                          val mainClass: String,
-                          val args: Seq[String],
-                          val scala: Boolean = true) extends ApplicationConfig {
-  var instance: Option[ProcessLauncherInstance] = None
-
-  override def start(): Unit = synchronized {
-    stop()
-
-    val dependency = if (scala) {
-      group %% artifact % version
-    } else {
-      group % artifact % version
-    }
-    val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true)
-    val li = Runner.run(config).asInstanceOf[ProcessLauncherInstance]
-    instance = Some(li)
-  }
-
-  override def stop(): Unit = synchronized {
-    instance match {
-      case Some(li) => li.stop()
-      case None => // No instance
-    }
-    instance = None
   }
 }
