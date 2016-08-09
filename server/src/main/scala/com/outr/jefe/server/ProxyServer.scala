@@ -41,6 +41,26 @@ object ProxyServer extends Logging {
           JefeServer.updateDirectories()
           "Updating directories..."
         }
+        case "/jefe/enable" => authAction(exchange) {
+          val appNameParams = exchange.getQueryParameters.get("app")
+          if (appNameParams.isEmpty) {
+            "ERROR: app must be specified!"
+          } else {
+            val appName = appNameParams.getFirst
+            JefeServer.changeEnabled(appName, enable = true)
+            s"$appName enabled"
+          }
+        }
+        case "/jefe/disable" => authAction(exchange) {
+          val appNameParams = exchange.getQueryParameters.get("app")
+          if (appNameParams.isEmpty) {
+            "ERROR: app must be specified!"
+          } else {
+            val appName = appNameParams.getFirst
+            JefeServer.changeEnabled(appName, enable = false)
+            s"$appName disabled"
+          }
+        }
         case _ => {
           val found = domainProxies.get(exchange.getHostName) match {
             case Some(handler) => {

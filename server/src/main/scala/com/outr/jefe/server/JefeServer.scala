@@ -6,24 +6,26 @@ import java.net.{URI, URL, URLEncoder}
 import com.outr.jefe.runner.Arguments
 import pl.metastack.metarx.Buffer
 
-import scala.xml.{Elem, NodeSeq, XML}
+import scala.xml.{Elem, Node, NodeSeq, XML}
 import com.outr.jefe.server.config._
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
+import org.powerscala.StringUtil
+import org.powerscala.concurrent.Time
 import org.powerscala.io._
 import org.powerscala.util.NetUtil
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.xml.transform.RewriteRule
 
 object JefeServer extends Logging {
-  // TODO: support starting Docker instance
+  val started = System.currentTimeMillis()
 
   val configurations: Buffer[AppConfiguration] = Buffer()
   var directory: File = _
 
   def main(args: Array[String]): Unit = {
-//    val args = Array("start", "directory=../servertest")
     if (args.isEmpty) {
       println(
         """Usage: jefe <command> (options)
@@ -78,6 +80,8 @@ object JefeServer extends Logging {
       case "status" => send(host, port, password, "status", Map("app" -> app))
       case "list" => send(host, port, password, "list", Map.empty)
       case "update" => send(host, port, password, "update", Map.empty)
+      case "enable" => send(host, port, password, "enable", Map("app" -> app))
+      case "disable" => send(host, port, password, "disable", Map("app" -> app))
     }
   }
 
@@ -88,10 +92,32 @@ object JefeServer extends Logging {
     println(response)
   }
 
-  def status(): String = configurations.get.map { appConfig =>
-    val stats = appConfig.application.flatMap(_.processMonitor.map(_.stats())).map(_.toString.trim).getOrElse("")
-    s"${appConfig.name}: PID=${appConfig.application.flatMap(_.pid).getOrElse(-1)}\n\t$stats"
-  }.mkString("\n\n")
+  def status(): String = {
+    var heapCommitted = 0L
+    var heapUsed = 0L
+    var offheapCommitted = 0L
+    var offheapUsed = 0L
+    val entries = configurations.get.map { appConfig =>
+      val stats = appConfig.application.flatMap(_.processMonitor.map(_.stats())).map { s =>
+        heapCommitted += s.heapUsage.committed
+        heapUsed += s.heapUsage.used
+        offheapCommitted += s.nonHeapUsage.committed
+        offheapUsed += s.nonHeapUsage.used
+        s.toString.trim
+      }.getOrElse("")
+      s"${appConfig.name}: PID=${appConfig.application.flatMap(_.pid).getOrElse(-1)}\n\t$stats"
+    }.mkString("\n\n")
+
+    entries +
+      s"""
+         |
+         |Total Heap Committed: ${StringUtil.humanReadableByteCount(heapCommitted)}
+         |Total Heap Used: ${StringUtil.humanReadableByteCount(heapUsed)}
+         |Total Off-Heap Committed: ${StringUtil.humanReadableByteCount(offheapCommitted)}
+         |Total Off-Heap Used: ${StringUtil.humanReadableByteCount(offheapUsed)}
+         |Uptime: ${Time.elapsed(System.currentTimeMillis() - started).toString()}
+       """.stripMargin
+  }
 
   def list(): String = {
     val heading = s"Listing ${configurations.get.size} configuration(s):"
@@ -144,6 +170,23 @@ object JefeServer extends Logging {
     } else {
       configurations.get.find(_.name == name).foreach(_.application.foreach(_.stop()))
     }
+  }
+
+  def changeEnabled(appName: String, enable: Boolean): Unit = {
+    val directory = new File(this.directory, appName)
+    val configFile = new File(directory, "jefe.config.xml")
+    val config = configFile.toURI.toURL
+    val xml = XML.load(config)
+    val rewriteRule = new RewriteRule {
+      override def transform(n: Node): Seq[Node] = n match {
+        case <enabled>{b}</enabled> => <enabled>{enable}</enabled>
+        case e: Elem => e.copy(child = transform(e.child))
+        case _ => n
+      }
+    }
+    val updated = rewriteRule.transform(xml).head
+    XML.save(configFile.getAbsolutePath, updated)
+    updateDirectories()
   }
 
   def loadConfiguration(directory: File): AppConfiguration = {
