@@ -7,7 +7,7 @@ import com.outr.jefe.server.config.InboundDomain
 import com.outr.scribe.formatter.Formatter
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{Level, LogHandler, Logger, Logging}
-import io.undertow.{Handlers, Undertow}
+import io.undertow.{Handlers, Undertow, UndertowOptions}
 import io.undertow.server.handlers.proxy.SimpleProxyClientProvider
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
@@ -15,7 +15,7 @@ import pl.metastack.metarx.{Buffer, Sub}
 
 object ProxyServer extends Logging {
   val access = new Logger("access", parent = None)
-  access.addHandler(LogHandler(Level.Info, Formatter.Default, FileWriter.Daily("access", new File(JefeServer.directory, "logs/access"))))
+  access.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", new File(JefeServer.directory, "logs/access"))))
 
   val host: Sub[String] = Sub("localhost")
   val port: Sub[Int] = Sub(8080)
@@ -120,6 +120,7 @@ object ProxyServer extends Logging {
     reloadProxies()
 
     val server = Undertow.builder()
+      .setServerOption(UndertowOptions.ENABLE_HTTP2, java.lang.Boolean.TRUE)
       .addHttpListener(port.get, host.get)
       .setHandler(handler)
       .build()

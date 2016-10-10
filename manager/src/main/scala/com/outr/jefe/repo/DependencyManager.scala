@@ -33,7 +33,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       import coursier._
       val start = Resolution(Set(Dependency(Module(vd.group, vd.name), vd.version.toString())))
       val fetch = Fetch.from(repositories, Cache.fetch())
-      val resolution = start.process.run(fetch).run
+      val resolution = start.process.run(fetch).unsafePerformSync
       val errors = resolution.errors
       val conflicts = resolution.conflicts
 
@@ -45,7 +45,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       }
       val localArtifacts = Task.gatherUnordered(
         resolution.artifacts.map(Cache.file(_, logger = Some(monitor.cacheLogger)).run)
-      ).run
+      ).unsafePerformSync
       val fileErrors = localArtifacts.map(_.toEither).collect {
         case Left(err) => err
       }

@@ -6,7 +6,7 @@ import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import com.outr.scribe.Logging
 import org.powerscala.StringUtil
-import org.powerscala.io.IO
+import org.powerscala.io._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._

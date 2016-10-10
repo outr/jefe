@@ -3,8 +3,8 @@ package com.outr.jefe.pack
 import java.io.File
 import java.net.URL
 
-import com.badlogicgames.packr.Packr
-import com.badlogicgames.packr.Packr.{Config, Platform}
+import com.badlogicgames.packr.{Packr, PackrConfig}
+import com.badlogicgames.packr.PackrConfig.Platform
 import com.outr.jefe.optimize.Optimizer
 import org.powerscala.io._
 import proguard.{Configuration, ConfigurationParser, ProGuard}
@@ -106,36 +106,23 @@ object Pack extends App {
   }
 
   def pack(): Unit = {
-    val config = new Config {
+    val config = new PackrConfig {
       executable = "runner"
       classpath = List(jar.getCanonicalPath)
       mainClass = "com.outr.jefe.runner.Runner"
       vmArgs = Nil
-      minimizeJre = Array(
-        "jre/lib/rt/com/sun/corba",
-        "jre/lib/rt/com/sun/jmx",
-        "jre/lib/rt/com/sun/jndi",
-        "jre/lib/rt/com/sun/media",
-        "jre/lib/rt/com/sun/naming",
-        "jre/lib/rt/com/sun/org",
-        "jre/lib/rt/com/sun/rowset",
-        "jre/lib/rt/com/sun/script",
-        "jre/lib/rt/com/sun/xml",
-        "jre/lib/rt/sun/applet",
-        "jre/lib/rt/sun/corba",
-        "jre/lib/rt/sun/management"
-      )
-      resources.add("../config")
+      minimizeJre = "soft"
+      resources = List(new File("../config"))
     }
 
     def runFor(jdk: File, platform: Platform): Unit = {
       config.platform = platform
       config.jdk = jdk.getAbsolutePath
-      config.outDir = new File(outputDir, platform.name()).getAbsolutePath
+      config.outDir = new File(outputDir, platform.name())
       new Packr().pack(config)
     }
 
-    runFor(JRE.Windows, Platform.windows64)
-    runFor(JRE.Mac, Platform.mac)
+    runFor(JRE.Windows, Platform.Windows64)
+    runFor(JRE.Mac, Platform.MacOS)
   }
 }

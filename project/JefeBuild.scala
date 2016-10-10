@@ -69,7 +69,7 @@ object JefeBuild extends Build {
     .dependsOn(launch, manager)
   lazy val optimizer = project.in(file("optimizer"))
     .settings(basicSettings("optimizer"))
-    .settings(libraryDependencies ++= Seq(powerscalaCore, scribe))
+    .settings(libraryDependencies ++= Seq(powerscalaCore, powerscalaIO, scribe))
   lazy val pack = project.in(file("pack"))
     .settings(basicSettings("pack"))
     .settings(libraryDependencies ++= Seq(packr, proguard))
@@ -87,7 +87,7 @@ object JefeBuild extends Build {
 object Details {
   val organization = "com.outr.jefe"
   val name = "jefe"
-  val version = "1.0.1"
+  val version = "1.0.2"
   val url = "http://outr.com"
   val licenseType = "MIT"
   val licenseURL = "http://opensource.org/licenses/MIT"
@@ -102,16 +102,16 @@ object Details {
 }
 
 object Dependencies {
-  val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M12-1"
-  val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M12-1"
-  val metarx = "pl.metastack" %% "metarx" % "0.1.7"
+  val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M14-3"
+  val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M14-3"
+  val metarx = "com.outr" %% "metarx" % "0.1.8-cyclical"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
-  val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2-SNAPSHOT"
-  val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2-SNAPSHOT"
-  val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2-SNAPSHOT"
-  val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2-SNAPSHOT"
-  val proguard = "net.sf.proguard" % "proguard-base" % "5.2.1"
-  val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
-  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.3"
-  val undertowCore = "io.undertow" % "undertow-core" % "1.4.0.CR1"
+  val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2"
+  val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2"
+  val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2"
+  val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2"
+  val proguard = "net.sf.proguard" % "proguard-base" % "5.3"
+  val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
+  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
+  val undertowCore = "io.undertow" % "undertow-core" % "1.4.3.Final"
 }

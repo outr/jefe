@@ -60,7 +60,7 @@ object JefeServer extends Logging {
     directory = new File(arguments.takeOrElse("directory", "."))
     val app = arguments.takeOrElse("app", "")
 
-    Logger.Root.addHandler(LogHandler(writer = FileWriter.Daily("jefe", new File(directory, "logs"))))
+    Logger.root.addHandler(LogHandler(writer = FileWriter.daily("jefe", new File(directory, "logs"))))
 
     action match {
       case "start" => {

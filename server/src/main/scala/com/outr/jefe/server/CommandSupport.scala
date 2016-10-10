@@ -34,7 +34,7 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
       case Quit => JefeServer.shutdown()
     }
   } catch {
-    case t: Throwable => logger.error(Platform.throwable2String(t))
+    case t: Throwable => logger.error(t)
   }
 
   override def toCommand(line: String): Option[Command] = if (line != null) {
