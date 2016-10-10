@@ -69,7 +69,7 @@ object JefeBuild extends Build {
     .dependsOn(launch, manager)
   lazy val optimizer = project.in(file("optimizer"))
     .settings(basicSettings("optimizer"))
-    .settings(libraryDependencies ++= Seq(powerscalaCore, powerscalaIO, scribe))
+    .settings(libraryDependencies ++= Seq(powerscalaCore, powerscalaIO, scribe, asm))
   lazy val pack = project.in(file("pack"))
     .settings(basicSettings("pack"))
     .settings(libraryDependencies ++= Seq(packr, proguard))
@@ -114,4 +114,5 @@ object Dependencies {
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
   val undertowCore = "io.undertow" % "undertow-core" % "1.4.3.Final"
+  val asm = "org.ow2.asm" % "asm" % "5.1"
 }

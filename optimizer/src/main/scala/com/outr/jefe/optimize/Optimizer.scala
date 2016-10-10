@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 
 class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, wildcardsList: File) extends URLClassLoader(Array(inJAR.toURI.toURL), null) with Logging {
-  private var classes = Set.empty[String]
+  var classes = Set.empty[String]
   private val wildcards = if (wildcardsList.exists()) {
     IO.stream(wildcardsList, new StringBuilder).toString.split("\n").map(_.trim).toList
   } else {
@@ -35,19 +35,21 @@ class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, w
     super.loadClass(name, resolve)
   }
 
-  def optimize(): Unit = {
+  def optimize(run: Boolean): Unit = {
     if (classList.exists()) {
       classes = IO.stream(classList, new StringBuilder).toString.split("\n").map(_.trim).toSet
     }
 
-    Thread.currentThread().setContextClassLoader(this)
-    val clazz = loadClass(mainClass)
-    val main = clazz.getMethod("main", classOf[Array[String]])
-    val instance = main.invoke(null, Array.empty[String])
-    val waitFor = clazz.getMethod("waitFor")
-    waitFor.invoke(instance)
-    logger.info(s"Finished. Found ${classes.size} classes.")
-    IO.stream(classes.mkString("\n"), classList)
+    if (run) {
+      Thread.currentThread().setContextClassLoader(this)
+      val clazz = loadClass(mainClass)
+      val main = clazz.getMethod("main", classOf[Array[String]])
+      val instance = main.invoke(null, Array.empty[String])
+      val waitFor = clazz.getMethod("waitFor")
+      waitFor.invoke(instance)
+      logger.info(s"Finished. Found ${classes.size} classes.")
+      IO.stream(classes.mkString("\n"), classList)
+    }
 
     val in = new ZipFile(inJAR)
     val entries = in.entries().toList
@@ -89,6 +91,7 @@ class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, w
 
           writeEntry()
         } else {
+          logger.info(s"Excluding: $fullName")
           exclude += 1
         }
       } else {
@@ -114,7 +117,7 @@ object Optimizer extends App {
   val wildcardsFile = new File(argOrElse(4, "wildcards.list"))
 
   val optimizer = new Optimizer(mainClass, inputJAR, outputJAR, classListFile, wildcardsFile)
-  optimizer.optimize()
+  optimizer.optimize(run = true)
 
   private def argOrElse(index: Int, default: String): String = if (args.length > index) {
     args(index)

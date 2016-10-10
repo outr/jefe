@@ -51,7 +51,7 @@ object Runner extends Logging {
       }
       Some(Configuration(dep, mainClass, a.leftOvers.toArray))
     }
-    configuration.foreach(run(_))
+    configuration.foreach(run)
   }
 
   def run(configuration: Configuration): LauncherInstance = {
