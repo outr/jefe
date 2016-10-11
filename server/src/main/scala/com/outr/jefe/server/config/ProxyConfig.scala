@@ -4,4 +4,5 @@ import java.net.URI
 
 case class ProxyConfig(enabled: Boolean = false,
                        inbound: List[Inbound],
-                       outbound: URI)
+                       outbound: URI,
+                       priority: Priority)

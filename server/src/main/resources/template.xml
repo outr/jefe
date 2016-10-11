@@ -2,6 +2,7 @@
 <configuration>
     <proxy>
         <enabled>false</enabled>
+        <priority>normal</priority>
         <inbound>
             <domain>hyperscala.org</domain>
             <domain>www.hyperscala.org</domain>

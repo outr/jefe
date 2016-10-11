@@ -53,7 +53,7 @@ object JefeServer extends Logging {
     val action = args.head
     val arguments = new Arguments(args.tail)
     val password = arguments.takeOrElse("password", "")
-    val host = arguments.takeOrElse("host", "localhost")
+    val host = arguments.takeOrElse("host", "0.0.0.0")
     val port = arguments.takeOrElse("port", "8080").toInt
     val background = arguments.takeOrElse("background", "false").toBoolean
 
@@ -204,7 +204,8 @@ object JefeServer extends Logging {
         }
       }).toList
       val outbound = new URI((p \ "outbound").text)
-      ProxyConfig(enabled, inbound, outbound)
+      val priority = Priority.get((p \ "priority").text).getOrElse(Priority.Normal)
+      ProxyConfig(enabled, inbound, outbound, priority)
     }
     val app = (xml \ "application").headOption.map { a =>
       val enabled = (a \ "enabled").bool

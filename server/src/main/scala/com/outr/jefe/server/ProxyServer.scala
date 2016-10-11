@@ -138,3 +138,5 @@ object ProxyServer extends Logging {
     }
   }
 }
+
+case class ProxyMapping()
