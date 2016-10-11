@@ -11,107 +11,111 @@ import io.undertow.{Handlers, Undertow, UndertowOptions}
 import io.undertow.server.handlers.proxy.SimpleProxyClientProvider
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
+import org.hyperscala.{Handler, HandlerBuilder, Priority, Server}
 import pl.metastack.metarx.{Buffer, Sub}
+
+import scala.collection.mutable.ListBuffer
 
 object ProxyServer extends Logging {
   val access = new Logger("access", parent = None)
   access.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", new File(JefeServer.directory, "logs/access"))))
 
-  val host: Sub[String] = Sub("localhost")
-  val port: Sub[Int] = Sub(8080)
+  val server = new Server
+  def host: Sub[String] = server.config.host
+  def port: Sub[Int] = server.config.port
   val password: Sub[String] = Sub("")
 
-  private var domainProxies = Map.empty[String, HttpHandler]
+  private var handlers = List.empty[Handler]
 
-  private val instance: Sub[Option[Undertow]] = Sub(None)
-  private object handler extends HttpHandler {
-    override def handleRequest(exchange: HttpServerExchange): Unit = {
-      exchange.getRequestPath match {
-        case "/jefe/stop" => authAction(exchange) {
-          JefeServer.shutdown()
-          "Shutting down server..."
+  init()
+
+  private def init(): Unit = {
+    def register(path: String)(f: HttpServerExchange => String): Unit = {
+      Handler.pathMatch(path).withHandler("text/plain") { exchange =>
+        val credentials = exchange.getQueryParameters.get("password").getFirst
+        if (credentials != password.get) {
+          "Invalid credentials supplied"
+        } else {
+          f(exchange)
         }
-        case "/jefe/status" => authAction(exchange) {
-          JefeServer.status()
-        }
-        case "/jefe/list" => authAction(exchange) {
-          JefeServer.list()
-        }
-        case "/jefe/update" => authAction(exchange) {
-          JefeServer.updateDirectories()
-          "Updating directories..."
-        }
-        case "/jefe/enable" => authAction(exchange) {
-          val appNameParams = exchange.getQueryParameters.get("app")
-          if (appNameParams.isEmpty) {
-            "ERROR: app must be specified!"
-          } else {
-            val appName = appNameParams.getFirst
-            JefeServer.changeEnabled(appName, enable = true)
-            s"$appName enabled"
-          }
-        }
-        case "/jefe/disable" => authAction(exchange) {
-          val appNameParams = exchange.getQueryParameters.get("app")
-          if (appNameParams.isEmpty) {
-            "ERROR: app must be specified!"
-          } else {
-            val appName = appNameParams.getFirst
-            JefeServer.changeEnabled(appName, enable = false)
-            s"$appName disabled"
-          }
-        }
-        case _ => {
-          val found = domainProxies.get(exchange.getHostName) match {
-            case Some(handler) => {
-              handler.handleRequest(exchange)
-              true
-            }
-            case None => {
-              logger.warn(s"No match for proxying domain: ${exchange.getRequestURL}")
-              false
-            }
-          }
-          val peer = exchange.getConnection.getPeerAddress.asInstanceOf[InetSocketAddress]
-          access.info(s"Handler: ${if (found) "Found" else "Not found"}, URL: ${exchange.getRequestURL}, Client: ${peer.getHostName} (${peer.getAddress})")
-        }
+      }.withPriority(Priority.High).register(server)
+    }
+
+    register("/jefe/stop") { exchange =>
+      JefeServer.shutdown()
+      "Shutting down server..."
+    }
+    register("/jefe/status") { exchange =>
+      JefeServer.status()
+    }
+    register("/jefe/list") { exchange =>
+      JefeServer.list()
+    }
+    register("/jefe/update") { exchange =>
+      JefeServer.updateDirectories()
+      "Updating directories..."
+    }
+    register("/jefe/enable") { exchange =>
+      val appNameParams = exchange.getQueryParameters.get("app")
+      if (appNameParams.isEmpty) {
+        "ERROR: app must be specified!"
+      } else {
+        val appName = appNameParams.getFirst
+        JefeServer.changeEnabled(appName, enable = true)
+        s"$appName enabled"
+      }
+    }
+    register("/jefe/disable") { exchange =>
+      val appNameParams = exchange.getQueryParameters.get("app")
+      if (appNameParams.isEmpty) {
+        "ERROR: app must be specified!"
+      } else {
+        val appName = appNameParams.getFirst
+        JefeServer.changeEnabled(appName, enable = false)
+        s"$appName disabled"
       }
     }
   }
 
-  def authAction(exchange: HttpServerExchange)(f: => String): Unit = {
-    val credentials = exchange.getQueryParameters.get("password").getFirst
-    val message = if (credentials != password.get) {
-      "Invalid credentials supplied"
-    } else {
-      f
-    }
-    exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, "text/plain")
-    exchange.getResponseSender.send(message)
-  }
-
   JefeServer.configurations.changes.attach { changed =>
-    if (instance.get.nonEmpty) {
+    if (server.isStarted) {
       reloadProxies()
     }
   }
 
-  def reloadProxies(): Unit = {
-    var dp = Map.empty[String, HttpHandler]
+  def reloadProxies(): Unit = synchronized {
+    // Build the new list of Handlers
+    val handlers = ListBuffer.empty[Handler]
     JefeServer.configurations.get.foreach { config =>
       config.proxy match {
         case Some(proxy) if proxy.enabled => {
-          val provider = new SimpleProxyClientProvider(proxy.outbound)
-          val client = Handlers.proxyHandler(provider)
+          var builder: HandlerBuilder = Handler
+
+          // Configure matching
           proxy.inbound.foreach {
-            case id: InboundDomain => dp += id.domain -> client
+            case id: InboundDomain => builder = builder.hostMatch(id.domain)
             case i => throw new RuntimeException(s"Unsupported Inbound: $i.")
           }
+
+          // Configure proxy
+          builder = builder.withProxy(proxy.outbound)
+
+          // Configure priority
+          builder = builder.withPriority(proxy.priority)
+
+          handlers += builder.build()
         }
-        case _ => // No proxy for this config or disabled
+        case _ => // No proxy for this configuration or it's disabled
       }
     }
-    domainProxies = dp
+
+    // Remove all the existing Handlers
+    this.handlers.foreach(server.unregister)
+
+    // Register the new list of Handlers
+    handlers.foreach(server.register)
+
+    this.handlers = handlers.toList
   }
 
   def start(): Unit = synchronized {
@@ -119,23 +123,11 @@ object ProxyServer extends Logging {
 
     reloadProxies()
 
-    val server = Undertow.builder()
-      .setServerOption(UndertowOptions.ENABLE_HTTP2, java.lang.Boolean.TRUE)
-      .addHttpListener(port.get, host.get)
-      .setHandler(handler)
-      .build()
     server.start()
-    instance := Some(server)
   }
 
   def stop(): Unit = synchronized {
-    instance.get match {
-      case Some(i) => {
-        i.stop()
-        instance := None
-      }
-      case None => // Nothing existing
-    }
+    server.stop()
   }
 }
 

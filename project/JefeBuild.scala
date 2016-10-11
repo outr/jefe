@@ -77,7 +77,7 @@ object JefeBuild extends Build {
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
     .settings(assemblyJarName := s"${name.value}-${version.value}.jar")
-    .settings(libraryDependencies ++= Seq(undertowCore, powerscalaCommand, powerscalaConcurrent))
+    .settings(libraryDependencies ++= Seq(hyperscalaCore, powerscalaCommand, powerscalaConcurrent))
     .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
@@ -85,9 +85,9 @@ object JefeBuild extends Build {
 }
 
 object Details {
-  val organization = "com.outr.jefe"
+  val organization = "com.outr"
   val name = "jefe"
-  val version = "1.0.2"
+  val version = "1.0.0"
   val url = "http://outr.com"
   val licenseType = "MIT"
   val licenseURL = "http://opensource.org/licenses/MIT"
@@ -110,9 +110,9 @@ object Dependencies {
   val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2"
   val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2"
   val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2"
+  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.0-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.3"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
-  val undertowCore = "io.undertow" % "undertow-core" % "1.4.3.Final"
   val asm = "org.ow2.asm" % "asm" % "5.1"
 }

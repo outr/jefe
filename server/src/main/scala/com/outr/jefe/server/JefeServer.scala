@@ -10,6 +10,7 @@ import scala.xml.{Elem, Node, NodeSeq, XML}
 import com.outr.jefe.server.config._
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
+import org.hyperscala.Priority
 import org.powerscala.StringUtil
 import org.powerscala.concurrent.Time
 import org.powerscala.io._
