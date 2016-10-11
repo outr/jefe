@@ -17,7 +17,7 @@ class DependencyAppConfig(val enabled: Boolean,
                           val args: Seq[String],
                           val jmxPort: Int,
                           val vmArgs: Seq[String],
-                          val scala: Boolean = true) extends ApplicationConfig {
+                          val scala: Boolean = true) extends ProcessApplicationConfig {
   var instance: Option[ProcessLauncherInstance] = None
   var processMonitor: Option[JMXProcessMonitor] = None
 

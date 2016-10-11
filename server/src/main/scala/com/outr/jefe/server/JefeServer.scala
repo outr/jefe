@@ -99,14 +99,16 @@ object JefeServer extends Logging {
     var offheapCommitted = 0L
     var offheapUsed = 0L
     val entries = configurations.get.map { appConfig =>
-      val stats = appConfig.application.flatMap(_.processMonitor.map(_.stats())).map { s =>
-        heapCommitted += s.heapUsage.committed
-        heapUsed += s.heapUsage.used
-        offheapCommitted += s.nonHeapUsage.committed
-        offheapUsed += s.nonHeapUsage.used
-        s.toString.trim
-      }.getOrElse("")
-      s"${appConfig.name}: PID=${appConfig.application.flatMap(_.pid).getOrElse(-1)}\n\t$stats"
+      val (stats, pid) = appConfig.application.collect {
+        case app: ProcessApplicationConfig => app.processMonitor.map(_.stats()).map { processStats =>
+          heapCommitted += processStats.heapUsage.committed
+          heapUsed += processStats.heapUsage.used
+          offheapCommitted += processStats.nonHeapUsage.committed
+          offheapUsed += processStats.nonHeapUsage.used
+          processStats.toString.trim -> app.pid.getOrElse(-1)
+        }
+      }.flatten.getOrElse("" -> -1)
+      s"${appConfig.name}: PID=$pid\n\t$stats"
     }.mkString("\n\n")
 
     entries +
@@ -122,7 +124,7 @@ object JefeServer extends Logging {
 
   def list(): String = {
     val heading = s"Listing ${configurations.get.size} configuration(s):"
-    val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.flatMap(_.pid)}): ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
+    val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.map(ProcessApplicationConfig.pid)}): ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
     s"$heading\n$items"
   }
 
@@ -244,6 +246,20 @@ object JefeServer extends Logging {
           val version = (a \ "version").string
           val scala = (a \ "scala").headOption.forall(_.text.toBoolean)
           new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, scala)
+        }
+        case "static" => {
+          val path = (a \ "path").string
+          val contentDirectory = if (path.isEmpty) {
+            new File(directory, "content")
+          } else {
+            new File(directory, path)
+          }
+          val host = (a \ "host").string match {
+            case "" => "127.0.0.1"
+            case h => h
+          }
+          val port = (a \ "port").int
+          new StaticAppConfig(enabled, host, port, contentDirectory)
         }
       }
     }

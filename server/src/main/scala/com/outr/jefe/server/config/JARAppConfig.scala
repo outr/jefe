@@ -6,7 +6,7 @@ import com.outr.jefe.launch.{Launcher, ProcessLauncherInstance}
 import com.outr.jefe.server.JMXProcessMonitor
 import org.powerscala.util.NetUtil
 
-class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, val args: Seq[String], jmxPort: Int, val vmArgs: Seq[String]) extends ApplicationConfig {
+class JARAppConfig(val enabled: Boolean, val jar: File, val mainClass: String, val args: Seq[String], jmxPort: Int, val vmArgs: Seq[String]) extends ProcessApplicationConfig {
   var instance: Option[ProcessLauncherInstance] = None
   var processMonitor: Option[JMXProcessMonitor] = None
 
