@@ -110,7 +110,7 @@ object Dependencies {
   val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2"
   val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2"
   val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2"
-  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.0-SNAPSHOT"
+  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.2"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.3"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"

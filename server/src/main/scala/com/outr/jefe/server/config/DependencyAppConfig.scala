@@ -3,7 +3,7 @@ package com.outr.jefe.server.config
 import java.io.File
 
 import com.outr.jefe.launch.ProcessLauncherInstance
-import com.outr.jefe.runner.{Configuration, Runner}
+import com.outr.jefe.runner.{Configuration, Repositories, Runner}
 import com.outr.jefe.server.JMXProcessMonitor
 import com.outr.jefe.repo._
 import org.powerscala.util.NetUtil
@@ -17,6 +17,7 @@ class DependencyAppConfig(val enabled: Boolean,
                           val args: Seq[String],
                           val jmxPort: Int,
                           val vmArgs: Seq[String],
+                          val repositories: Repositories,
                           val scala: Boolean = true) extends ProcessApplicationConfig {
   var instance: Option[ProcessLauncherInstance] = None
   var processMonitor: Option[JMXProcessMonitor] = None
