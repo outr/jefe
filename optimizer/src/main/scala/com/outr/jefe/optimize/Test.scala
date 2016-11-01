@@ -28,7 +28,7 @@ class Sample {
   val list = new util.ArrayList[String]()
 
   def test(): Unit = {
-    Logger.Root.info("Sample sample!")
+    Logger.root.info("Sample sample!")
     simple.test()
   }
 

@@ -3,7 +3,7 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{URI, URL, URLEncoder}
 
-import com.outr.jefe.runner.Arguments
+import com.outr.jefe.runner.{Arguments, Repositories}
 import pl.metastack.metarx.Buffer
 
 import scala.xml.{Elem, Node, NodeSeq, XML}
@@ -245,7 +245,8 @@ object JefeServer extends Logging {
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
           val scala = (a \ "scala").headOption.forall(_.text.toBoolean)
-          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, scala)
+          val repositories = Repositories()   // TODO: load from configuration
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, repositories, scala)
         }
         case "static" => {
           val path = (a \ "path").string
