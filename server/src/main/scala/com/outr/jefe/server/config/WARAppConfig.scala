@@ -2,6 +2,8 @@ package com.outr.jefe.server.config
 
 import java.io.File
 
+import com.outr.jefe.runner.Repositories
+
 class WARAppConfig(enabled: Boolean, war: File, port: Int, jmxPort: Int, vmArgs: Seq[String]) extends DependencyAppConfig(
   enabled,
   war.getParentFile,
@@ -12,5 +14,6 @@ class WARAppConfig(enabled: Boolean, war: File, port: Int, jmxPort: Int, vmArgs:
   List("--port", port.toString, war.getCanonicalPath),
   jmxPort,
   vmArgs,
+  Repositories(),
   scala = false
 )

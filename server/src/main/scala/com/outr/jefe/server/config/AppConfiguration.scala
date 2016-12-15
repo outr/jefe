@@ -2,5 +2,5 @@ package com.outr.jefe.server.config
 
 case class AppConfiguration(name: String,
                             lastModified: Long,
-                            proxy: Option[ProxyConfig],
+                            proxies: List[ProxyConfig],
                             application: Option[ApplicationConfig])

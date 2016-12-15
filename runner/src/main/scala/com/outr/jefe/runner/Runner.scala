@@ -14,13 +14,12 @@ class Arguments(args: Array[String]) {
 
   def contains(key: String): Boolean = entries.exists(_.startsWith(s"$key="))
 
-  def takeOrElse(key: String, default: => String): String = entries.find(_.startsWith(s"$key=")) match {
-    case Some(value) => {
-      entries = entries.filterNot(_ == value)
-      value.substring(key.length + 1)
-    }
-    case None => default
+  def takeOptional(key: String): Option[String] = entries.find(_.startsWith(s"$key=")).map { value =>
+    entries = entries.filterNot(_ == value)
+    value.substring(key.length + 1)
   }
+
+  def takeOrElse(key: String, default: => String): String = takeOptional(key).getOrElse(default)
 
   def take(key: String): String = takeOrElse(key, throw new RuntimeException(s"Unable to find $key in ${args.mkString(", ")}"))
 

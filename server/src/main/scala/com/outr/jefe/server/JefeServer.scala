@@ -3,7 +3,7 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{URI, URL, URLEncoder}
 
-import com.outr.jefe.runner.Arguments
+import com.outr.jefe.runner.{Arguments, Repositories}
 import pl.metastack.metarx.Buffer
 
 import scala.xml.{Elem, Node, NodeSeq, XML}
@@ -33,9 +33,12 @@ object JefeServer extends Logging {
           | Commands:
           |   start - starts the server instance
           |     password - the password required for interaction. defaults to "".
-          |     host - the host to bind to. defaults to localhost.
+          |     host - the host to bind to. defaults to "0.0.0.0".
           |     port - the port to bind to. defaults to 8080.
-          |     background - whether this should run in the background or foreground. defaults to false.
+          |     ssl.keystore - the path to the JKS SSL keystore file (Optional. Enables SSL if defined).
+          |     ssl.host - the host to bind HTTPS to. defaults to "0.0.0.0".
+          |     ssl.port - the port to bind HTTPS to. defaults to 8443.
+          |     ssl.password - the keystore password to use. defaults to "password".
           |     directory - the directory to manage. defaults to current directory.
           |   stop - stops the server instance
           |     password - the password required for interaction. defaults to "".
@@ -56,7 +59,10 @@ object JefeServer extends Logging {
     val password = arguments.takeOrElse("password", "")
     val host = arguments.takeOrElse("host", "0.0.0.0")
     val port = arguments.takeOrElse("port", "8080").toInt
-    val background = arguments.takeOrElse("background", "false").toBoolean
+    val sslKeyStore = arguments.takeOptional("ssl.keystore")
+    val sslHost = arguments.takeOrElse("ssl.host", "0.0.0.0")
+    val sslPort = arguments.takeOrElse("ssl.port", "8443").toInt
+    val sslPassword = arguments.takeOrElse("ssl.password", "password")
 
     directory = new File(arguments.takeOrElse("directory", "."))
     val app = arguments.takeOrElse("app", "")
@@ -65,11 +71,16 @@ object JefeServer extends Logging {
 
     action match {
       case "start" => {
-        // TODO: support background
-
-        ProxyServer.host := host
-        ProxyServer.port := port
+        ProxyServer.config.host := host
+        ProxyServer.config.port := port
         ProxyServer.password := password
+        sslKeyStore.foreach { path =>
+          ProxyServer.config.https.keyStoreLocation := new File(path)
+          ProxyServer.config.https.host := sslHost
+          ProxyServer.config.https.port := sslPort
+          ProxyServer.config.https.password := sslPassword
+          ProxyServer.config.https.enabled := true
+        }
 
         updateDirectories()
 
@@ -124,7 +135,7 @@ object JefeServer extends Logging {
 
   def list(): String = {
     val heading = s"Listing ${configurations.get.size} configuration(s):"
-    val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.map(ProcessApplicationConfig.pid)}): ${appConfig.proxy} / ${appConfig.application}").mkString("\n")
+    val items = configurations.get.map(appConfig => s"${appConfig.name} (pid: ${appConfig.application.map(ProcessApplicationConfig.pid)}): ${appConfig.proxies} / ${appConfig.application}").mkString("\n")
     s"$heading\n$items"
   }
 
@@ -198,18 +209,22 @@ object JefeServer extends Logging {
     val lastModified = configFile.lastModified()
     val config = configFile.toURI.toURL
     val xml = XML.load(config)
-    val proxy = (xml \ "proxy").headOption.map { p =>
+    val proxies = (xml \ "proxy").map { p =>
       val enabled = (p \ "enabled").bool
-      val inbound = (p \ "inbound").head.flatMap(_.child.collect {
+      val inboundXML = p \ "inbound"
+      val inboundPort = (inboundXML \ "@port").intOption
+      val inbound = inboundXML.head.flatMap(_.child.collect {
         case e: Elem => e.label match {
           case "domain" => InboundDomain(e.text)
           case label => throw new RuntimeException(s"Unsupported inbound type: $label.")
         }
       }).toList
-      val outbound = new URI((p \ "outbound").text)
+      val outboundXML = p \ "outbound"
+      val outboundURI = new URI(outboundXML.text)
+      val outbound = Outbound(outboundURI, (outboundXML \ "@keyStore").stringOption.map(p => new File(p)), (outboundXML \ "@password").string)
       val priority = Priority.get((p \ "priority").text).getOrElse(Priority.Normal)
-      ProxyConfig(enabled, inbound, outbound, priority)
-    }
+      ProxyConfig(enabled, inboundPort, inbound, outbound, priority)
+    }.toList
     val app = (xml \ "application").headOption.map { a =>
       val enabled = (a \ "enabled").bool
       val mainClass = (a \ "mainClass").string
@@ -245,7 +260,7 @@ object JefeServer extends Logging {
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
           val scala = (a \ "scala").headOption.forall(_.text.toBoolean)
-          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, scala)
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, Repositories(), scala)
         }
         case "static" => {
           val path = (a \ "path").string
@@ -263,7 +278,7 @@ object JefeServer extends Logging {
         }
       }
     }
-    AppConfiguration(name, lastModified, proxy, app)
+    AppConfiguration(name, lastModified, proxies, app)
   }
 
   def shutdown(): Unit = Future({
@@ -274,9 +289,14 @@ object JefeServer extends Logging {
   })
 
   implicit class ExtraNode(n: NodeSeq) {
-    def bool = n.headOption.exists(_.text.toBoolean)
-    def int = n.headOption.map(_.text.toInt).get
+    def bool: Boolean = n.headOption.exists(_.text.toBoolean)
+    def int: Int = n.headOption.map(_.text.toInt).get
+    def intOption: Option[Int] = n.headOption.map(_.text.toInt)
 
-    def string = n.text
+    def string: String = n.text
+    def stringOption: Option[String] = n.text match {
+      case s if s.trim.nonEmpty => Some(s)
+      case _ => None
+    }
   }
 }

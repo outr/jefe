@@ -41,7 +41,7 @@ object Pack extends App {
     val classList = new File(outputDir, "includes.list")
     val wildCards = new File(outputDir, "wildcards.list")
     val optimizer = new Optimizer("com.outr.jefe.runner.Runner", assemblyJAR, jar, classList, wildCards)
-    optimizer.optimize()
+    optimizer.optimize(run = true)
   }
 
   def optimize(): Unit = {

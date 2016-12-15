@@ -16,13 +16,10 @@ import pl.metastack.metarx.{Buffer, Sub}
 
 import scala.collection.mutable.ListBuffer
 
-object ProxyServer extends Logging {
+object ProxyServer extends Server with Logging {
   val access = new Logger("access", parent = None)
   access.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", new File(JefeServer.directory, "logs/access"))))
 
-  val server = new Server
-  def host: Sub[String] = server.config.host
-  def port: Sub[Int] = server.config.port
   val password: Sub[String] = Sub("")
 
   private var handlers = List.empty[Handler]
@@ -38,7 +35,7 @@ object ProxyServer extends Logging {
         } else {
           f(exchange)
         }
-      }.withPriority(Priority.High).register(server)
+      }.withPriority(Priority.High).register(this)
     }
 
     register("/jefe/stop") { exchange =>
@@ -78,7 +75,7 @@ object ProxyServer extends Logging {
   }
 
   JefeServer.configurations.changes.attach { changed =>
-    if (server.isStarted) {
+    if (isStarted) {
       reloadProxies()
     }
   }
@@ -87,47 +84,48 @@ object ProxyServer extends Logging {
     // Build the new list of Handlers
     val handlers = ListBuffer.empty[Handler]
     JefeServer.configurations.get.foreach { config =>
-      config.proxy match {
-        case Some(proxy) if proxy.enabled => {
+      config.proxies.foreach { proxy =>
+        if (proxy.enabled) {
           var builder: HandlerBuilder = Handler
 
           // Configure matching
           proxy.inbound.foreach {
+            case id: InboundDomain if proxy.inboundPort.nonEmpty => {
+              builder = builder.withMatcher {
+                case url if url.host.matches(id.domain) && url.port == proxy.inboundPort.get => true
+              }
+            }
             case id: InboundDomain => builder = builder.hostMatch(id.domain)
             case i => throw new RuntimeException(s"Unsupported Inbound: $i.")
           }
 
           // Configure proxy
-          builder = builder.withProxy(proxy.outbound)
+          // TODO: implement keystore support in <outbound>
+          builder = builder.withProxy(proxy.outbound.uri, proxy.outbound.keyStore, proxy.outbound.password)
 
           // Configure priority
           builder = builder.withPriority(proxy.priority)
 
           handlers += builder.build()
         }
-        case _ => // No proxy for this configuration or it's disabled
       }
     }
 
     // Remove all the existing Handlers
-    this.handlers.foreach(server.unregister)
+    this.handlers.foreach(unregister)
 
     // Register the new list of Handlers
-    handlers.foreach(server.register)
+    handlers.foreach(register)
 
     this.handlers = handlers.toList
   }
 
-  def start(): Unit = synchronized {
+  override def start(): Unit = synchronized {
     stop()
 
     reloadProxies()
 
-    server.start()
-  }
-
-  def stop(): Unit = synchronized {
-    server.stop()
+    super.start()
   }
 }
 

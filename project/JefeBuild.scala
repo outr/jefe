@@ -102,17 +102,17 @@ object Details {
 }
 
 object Dependencies {
-  val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M14-3"
-  val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M14-3"
+  val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M15-1"
+  val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M15-1"
   val metarx = "com.outr" %% "metarx" % "0.1.8-cyclical"
   val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
   val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2"
   val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2"
   val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2"
   val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2"
-  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.2"
+  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.6-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.3"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
-  val scribe = "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
+  val scribe = "com.outr" %% "scribe-slf4j" % "1.2.6"
   val asm = "org.ow2.asm" % "asm" % "5.1"
 }
