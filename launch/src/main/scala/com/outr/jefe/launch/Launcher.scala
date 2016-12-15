@@ -22,14 +22,14 @@ class Launcher(mainClass: String,
 
   def process(workingDirectory: File, vmArgs: String*): ProcessLauncherInstance = {
     val extension = if (fileSeparator == "/") "" else "w.exe"
-    val javaPath = s"${javaHome}${fileSeparator}bin${fileSeparator}java$extension"
+    val javaPath = s"$javaHome${fileSeparator}bin${fileSeparator}java$extension"
     val b = ListBuffer.empty[String]
     b += javaPath
     vmArgs.foreach { arg =>
       b += arg
     }
     b += "-cp"
-    b += files.map(_.getAbsolutePath).mkString(pathSeparator)
+    b += (List(".") ::: files.toList.map(_.getAbsolutePath)).mkString(pathSeparator)
     b += mainClass
     args.foreach { arg =>
       b += arg
