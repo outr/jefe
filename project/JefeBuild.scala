@@ -59,7 +59,7 @@ object JefeBuild extends Build {
     .settings(publishArtifact := false)
   lazy val launch = project.in(file("launch"))
     .settings(basicSettings("launch"))
-    .settings(libraryDependencies ++= Seq(metarx, scribe))
+    .settings(libraryDependencies ++= Seq(reactify, scribe))
   lazy val manager = project.in(file("manager"))
     .settings(basicSettings("manager"))
     .settings(libraryDependencies ++= Seq(coursier, coursierCache, powerscalaCore, powerscalaIO, scalaXML, scribe))
@@ -97,22 +97,22 @@ object Details {
   val developerName = "Matt Hicks"
   val developerURL = "http://matthicks.com"
 
-  val sbtVersion = "0.13.11"
-  val scalaVersion = "2.11.8"
+  val sbtVersion = "0.13.13"
+  val scalaVersion = "2.12.1"
 }
 
 object Dependencies {
   val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M15-1"
   val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M15-1"
-  val metarx = "com.outr" %% "metarx" % "0.1.8-cyclical"
-  val packr = "com.badlogicgames.packr" % "packr" % "2.0-SNAPSHOT"
-  val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.2"
-  val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.2"
-  val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.2"
-  val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.2"
-  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.6-SNAPSHOT"
-  val proguard = "net.sf.proguard" % "proguard-base" % "5.3"
+  val reactify = "com.outr" %% "reactify" % "1.3.7"
+  val packr = "com.bladecoder.packr" % "packr" % "2.0"
+  val powerscalaCore = "org.powerscala" %% "powerscala-core" % "2.0.3"
+  val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.3"
+  val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.3"
+  val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.3"
+  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.10"
+  val proguard = "net.sf.proguard" % "proguard-base" % "5.3.2"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
-  val scribe = "com.outr" %% "scribe-slf4j" % "1.2.6"
-  val asm = "org.ow2.asm" % "asm" % "5.1"
+  val scribe = "com.outr" %% "scribe-slf4j" % "1.3.2"
+  val asm = "org.ow2.asm" % "asm" % "5.2"
 }

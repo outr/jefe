@@ -3,7 +3,8 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{InetSocketAddress, URI}
 
-import com.outr.jefe.server.config.InboundDomain
+import com.outr.jefe.server.config.{AppConfiguration, InboundDomain}
+import com.outr.reactify.{ChangeListener, Var}
 import com.outr.scribe.formatter.Formatter
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{Level, LogHandler, Logger, Logging}
@@ -12,15 +13,14 @@ import io.undertow.server.handlers.proxy.SimpleProxyClientProvider
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
 import org.hyperscala.{Handler, HandlerBuilder, Priority, Server}
-import pl.metastack.metarx.{Buffer, Sub}
 
 import scala.collection.mutable.ListBuffer
 
 object ProxyServer extends Server with Logging {
-  val access = new Logger("access", parent = None)
+  val access = new Logger(parentName = None)
   access.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", new File(JefeServer.directory, "logs/access"))))
 
-  val password: Sub[String] = Sub("")
+  val password: Var[String] = Var("")
 
   private var handlers = List.empty[Handler]
 
@@ -74,7 +74,7 @@ object ProxyServer extends Server with Logging {
     }
   }
 
-  JefeServer.configurations.changes.attach { changed =>
+  JefeServer.configurations.attach { _ =>
     if (isStarted) {
       reloadProxies()
     }

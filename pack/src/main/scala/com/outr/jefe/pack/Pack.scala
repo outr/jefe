@@ -9,7 +9,7 @@ import com.outr.jefe.optimize.Optimizer
 import org.powerscala.io._
 import proguard.{Configuration, ConfigurationParser, ProGuard}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object Pack extends App {
   object JRE {
@@ -21,9 +21,9 @@ object Pack extends App {
       file
     }
 
-    lazy val Windows = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-win_x64.zip")
-    lazy val Mac = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-macosx_x64.zip")
-    lazy val Linux = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-linux_x64.tar.gz")
+    lazy val Windows: File = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-win_x64.zip")
+    lazy val Mac: File = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-macosx_x64.zip")
+    lazy val Linux: File = load("http://cdn.azul.com/zulu/bin/zulu8.13.0.5-jdk8.0.72-linux_x64.tar.gz")
   }
 
   val outputDir = new File("../output")
@@ -108,11 +108,11 @@ object Pack extends App {
   def pack(): Unit = {
     val config = new PackrConfig {
       executable = "runner"
-      classpath = List(jar.getCanonicalPath)
+      classpath = List(jar.getCanonicalPath).asJava
       mainClass = "com.outr.jefe.runner.Runner"
-      vmArgs = Nil
+      vmArgs = List.empty[String].asJava
       minimizeJre = "soft"
-      resources = List(new File("../config"))
+      resources = List(new File("../config")).asJava
     }
 
     def runFor(jdk: File, platform: Platform): Unit = {

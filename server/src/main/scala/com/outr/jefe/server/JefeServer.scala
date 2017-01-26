@@ -4,10 +4,10 @@ import java.io.File
 import java.net.{URI, URL, URLEncoder}
 
 import com.outr.jefe.runner.{Arguments, Repositories}
-import pl.metastack.metarx.Buffer
 
 import scala.xml.{Elem, Node, NodeSeq, XML}
 import com.outr.jefe.server.config._
+import com.outr.reactify.Var
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
 import org.hyperscala.Priority
@@ -23,7 +23,7 @@ import scala.xml.transform.RewriteRule
 object JefeServer extends Logging {
   val started = System.currentTimeMillis()
 
-  val configurations: Buffer[AppConfiguration] = Buffer()
+  val configurations: Var[List[AppConfiguration]] = Var[List[AppConfiguration]](Nil)
   var directory: File = _
 
   def main(args: Array[String]): Unit = {
@@ -177,8 +177,11 @@ object JefeServer extends Logging {
           }
         }
         oldConfig match {
-          case Some(c) => JefeServer.configurations.replace(c, appConfig)
-          case None => JefeServer.configurations += appConfig
+          case Some(c) => JefeServer.configurations := JefeServer.configurations().map {
+            case cfg if cfg == c => appConfig
+            case cfg => cfg
+          }
+          case None => JefeServer.configurations := JefeServer.configurations() ::: List(appConfig)
         }
       }
     } else {

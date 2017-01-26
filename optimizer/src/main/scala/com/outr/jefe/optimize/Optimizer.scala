@@ -9,7 +9,7 @@ import org.powerscala.StringUtil
 import org.powerscala.io._
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, wildcardsList: File) extends URLClassLoader(Array(inJAR.toURI.toURL), null) with Logging {
   var classes = Set.empty[String]
@@ -52,7 +52,7 @@ class Optimizer(mainClass: String, inJAR: File, outJAR: File, classList: File, w
     }
 
     val in = new ZipFile(inJAR)
-    val entries = in.entries().toList
+    val entries = in.entries().asScala.toList
     val out = new ZipOutputStream(new FileOutputStream(outJAR))
     try {
       write(in, entries, out)
