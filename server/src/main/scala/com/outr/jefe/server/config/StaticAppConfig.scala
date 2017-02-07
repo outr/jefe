@@ -2,13 +2,12 @@ package com.outr.jefe.server.config
 
 import java.io.File
 
-import org.hyperscala.Server
+import io.youi.server.UndertowServer
 
 class StaticAppConfig(val enabled: Boolean, host: String, port: Int, directory: File) extends ApplicationConfig {
-  private val server = new Server
-  server.config.host := host
-  server.config.port := port
-  server.resourceManager.file(directory)()
+  private val server = new UndertowServer
+  server.config.clearListeners().addHttpListener(host, port)
+  server.handler.file(directory)
 
   override def start(): Unit = {
     server.start()

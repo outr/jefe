@@ -3,121 +3,116 @@ package com.outr.jefe.server
 import java.io.File
 import java.net.{InetSocketAddress, URI}
 
-import com.outr.jefe.server.config.{AppConfiguration, InboundDomain}
+import com.outr.jefe.server.config.InboundDomain
 import com.outr.reactify.{ChangeListener, Var}
 import com.outr.scribe.formatter.Formatter
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{Level, LogHandler, Logger, Logging}
-import io.undertow.{Handlers, Undertow, UndertowOptions}
-import io.undertow.server.handlers.proxy.SimpleProxyClientProvider
-import io.undertow.server.{HttpHandler, HttpServerExchange}
-import io.undertow.util.Headers
-import org.hyperscala.{Handler, HandlerBuilder, Priority, Server}
+import io.youi.{Priority, http}
+import io.youi.http.{Content, HttpConnection, HttpRequest, ProxyHandler}
+import io.youi.net.{ContentType, URL, URLMatcher}
+import io.youi.server._
+import io.youi.server.handler.{CachingManager, HttpHandler, HttpHandlerBuilder}
 
 import scala.collection.mutable.ListBuffer
 
-object ProxyServer extends Server with Logging {
+object ProxyServer extends UndertowServer with Logging {
   val access = new Logger(parentName = None)
   access.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", new File(JefeServer.directory, "logs/access"))))
 
   val password: Var[String] = Var("")
 
-  private var handlers = List.empty[Handler]
+  private var proxyHandlers = List.empty[HttpHandler]
 
   init()
 
   private def init(): Unit = {
-    def register(path: String)(f: HttpServerExchange => String): Unit = {
-      Handler.pathMatch(path).withHandler("text/plain") { exchange =>
-        val credentials = exchange.getQueryParameters.get("password").getFirst
-        if (credentials != password.get) {
+    def register(path: String)(f: HttpRequest => String): Unit = {
+      handler.matcher(http.path.exact(path)).priority(Priority.High).caching(CachingManager.NotCached).handle { httpConnection =>
+        val request = httpConnection.request
+        val credentials = request.url.param("password").getOrElse("")
+        val contentString = if (credentials != password()) {
           "Invalid credentials supplied"
         } else {
-          f(exchange)
+          f(request)
         }
-      }.withPriority(Priority.High).register(this)
+        httpConnection.update(_.withContent(Content.string(contentString, ContentType.`text/plain`)))
+      }
     }
 
-    register("/jefe/stop") { exchange =>
+    register("/jefe/stop") { _ =>
       JefeServer.shutdown()
       "Shutting down server..."
     }
-    register("/jefe/status") { exchange =>
+    register("/jefe/status") { _ =>
       JefeServer.status()
     }
-    register("/jefe/list") { exchange =>
+    register("/jefe/list") { _ =>
       JefeServer.list()
     }
-    register("/jefe/update") { exchange =>
+    register("/jefe/update") { _ =>
       JefeServer.updateDirectories()
       "Updating directories..."
     }
-    register("/jefe/enable") { exchange =>
-      val appNameParams = exchange.getQueryParameters.get("app")
-      if (appNameParams.isEmpty) {
-        "ERROR: app must be specified!"
-      } else {
-        val appName = appNameParams.getFirst
-        JefeServer.changeEnabled(appName, enable = true)
-        s"$appName enabled"
+    register("/jefe/enable") { request =>
+      request.url.param("app") match {
+        case Some(appName) => {
+          JefeServer.changeEnabled(appName, enable = true)
+          s"$appName enabled"
+        }
+        case None => "ERROR: app must be specified!"
       }
     }
-    register("/jefe/disable") { exchange =>
-      val appNameParams = exchange.getQueryParameters.get("app")
-      if (appNameParams.isEmpty) {
-        "ERROR: app must be specified!"
-      } else {
-        val appName = appNameParams.getFirst
-        JefeServer.changeEnabled(appName, enable = false)
-        s"$appName disabled"
+    register("/jefe/disable") { request =>
+      request.url.param("app") match {
+        case Some(appName) => {
+          JefeServer.changeEnabled(appName, enable = false)
+          s"$appName disabled"
+        }
+        case None => "ERROR: app must be specified!"
       }
     }
   }
 
   JefeServer.configurations.attach { _ =>
-    if (isStarted) {
+    if (isRunning) {
       reloadProxies()
     }
   }
 
   def reloadProxies(): Unit = synchronized {
     // Build the new list of Handlers
-    val handlers = ListBuffer.empty[Handler]
+    val handlers = ListBuffer.empty[HttpHandler]
     JefeServer.configurations.get.foreach { config =>
-      config.proxies.foreach { proxy =>
-        if (proxy.enabled) {
-          var builder: HandlerBuilder = Handler
-
+      config.proxies.foreach { proxyConfig =>
+        if (proxyConfig.enabled) {
           // Configure matching
-          proxy.inbound.foreach {
-            case id: InboundDomain if proxy.inboundPort.nonEmpty => {
-              builder = builder.withMatcher {
-                case url if url.host.matches(id.domain) && url.port == proxy.inboundPort.get => true
+          val matchers = proxyConfig.inbound.map {
+            case id: InboundDomain if proxyConfig.inboundPort.nonEmpty => {
+              new URLMatcher {
+                override def matches(url: URL): Boolean = url.host.matches(id.domain) && url.port == proxyConfig.inboundPort.get
               }
             }
-            case id: InboundDomain => builder = builder.hostMatch(id.domain)
+            case id: InboundDomain => http.host.matches(id.domain)
             case i => throw new RuntimeException(s"Unsupported Inbound: $i.")
           }
 
           // Configure proxy
-          // TODO: implement keystore support in <outbound>
-          builder = builder.withProxy(proxy.outbound.uri, proxy.outbound.keyStore, proxy.outbound.password)
+          val httpHandler = handler.matcher(http.combined.any(matchers: _*)).priority(proxyConfig.priority).proxy(new ProxyHandler {
+            override def proxy(connection: HttpConnection): Option[URL] = Some(proxyConfig.outbound.url)
 
-          // Configure priority
-          builder = builder.withPriority(proxy.priority)
+            override def keyStore: Option[KeyStore] = proxyConfig.outbound.keyStore
+          })
 
-          handlers += builder.build()
+          handlers += httpHandler
         }
       }
     }
 
     // Remove all the existing Handlers
-    this.handlers.foreach(unregister)
+    this.proxyHandlers.foreach(h => handlers -= h)
 
-    // Register the new list of Handlers
-    handlers.foreach(register)
-
-    this.handlers = handlers.toList
+    this.proxyHandlers = handlers.toList
   }
 
   override def start(): Unit = synchronized {

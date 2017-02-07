@@ -1,7 +1,7 @@
 package com.outr.jefe.server
 
 import java.io.File
-import java.net.{URI, URL, URLEncoder}
+import java.net.URLEncoder
 
 import com.outr.jefe.runner.{Arguments, Repositories}
 
@@ -10,7 +10,9 @@ import com.outr.jefe.server.config._
 import com.outr.reactify.Var
 import com.outr.scribe.writer.FileWriter
 import com.outr.scribe.{LogHandler, Logger, Logging}
-import org.hyperscala.Priority
+import io.youi.Priority
+import io.youi.net.URL
+import io.youi.server.KeyStore
 import org.powerscala.StringUtil
 import org.powerscala.concurrent.Time
 import org.powerscala.io._
@@ -71,16 +73,12 @@ object JefeServer extends Logging {
 
     action match {
       case "start" => {
-        ProxyServer.config.host := host
-        ProxyServer.config.port := port
-        ProxyServer.password := password
+        ProxyServer.config.clearListeners()
+        ProxyServer.config.addHttpListener(host, port)
         sslKeyStore.foreach { path =>
-          ProxyServer.config.https.keyStoreLocation := new File(path)
-          ProxyServer.config.https.host := sslHost
-          ProxyServer.config.https.port := sslPort
-          ProxyServer.config.https.password := sslPassword
-          ProxyServer.config.https.enabled := true
+          ProxyServer.config.addHttpsListener(sslHost, sslPort, sslPassword, new File(path))
         }
+        ProxyServer.password := password
 
         updateDirectories()
 
@@ -99,7 +97,7 @@ object JefeServer extends Logging {
 
   def send(host: String, port: Int, password: String, command: String, args: Map[String, String]): Unit = {
     val argsString = (args + ("password" -> password)).map(t => s"${t._1}=${URLEncoder.encode(t._2, "UTF-8")}").mkString("&")
-    val url = new URL(s"http://$host:$port/jefe/$command?${argsString}")
+    val url = new java.net.URL(s"http://$host:$port/jefe/$command?${argsString}")
     val response = IO.stream(url.openStream(), new StringBuilder).toString
     println(response)
   }
@@ -223,9 +221,10 @@ object JefeServer extends Logging {
         }
       }).toList
       val outboundXML = p \ "outbound"
-      val outboundURI = new URI(outboundXML.text)
-      val outbound = Outbound(outboundURI, (outboundXML \ "@keyStore").stringOption.map(p => new File(p)), (outboundXML \ "@password").string)
-      val priority = Priority.get((p \ "priority").text).getOrElse(Priority.Normal)
+      val outboundURI = URL(outboundXML.text)
+      val keyStore = (outboundXML \ "@keyStore").stringOption.map(p => KeyStore(new File(p), (outboundXML \ "@password").string))
+      val outbound = Outbound(outboundURI, keyStore)
+      val priority = Priority.byName((p \ "priority").text).getOrElse(Priority.Normal)
       ProxyConfig(enabled, inboundPort, inbound, outbound, priority)
     }.toList
     val app = (xml \ "application").headOption.map { a =>

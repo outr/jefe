@@ -1,9 +1,10 @@
 package com.outr.jefe.server.config
 
 import java.io.File
-import java.net.URI
 
-import org.hyperscala.Priority
+import io.youi.Priority
+import io.youi.net.URL
+import io.youi.server.KeyStore
 
 case class ProxyConfig(enabled: Boolean = false,
                        inboundPort: Option[Int],
@@ -11,4 +12,4 @@ case class ProxyConfig(enabled: Boolean = false,
                        outbound: Outbound,
                        priority: Priority)
 
-case class Outbound(uri: URI, keyStore: Option[File], password: String)
+case class Outbound(url: URL, keyStore: Option[KeyStore])

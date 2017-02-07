@@ -77,7 +77,7 @@ object JefeBuild extends Build {
   lazy val server = project.in(file("server"))
     .settings(basicSettings("server"))
     .settings(assemblyJarName := s"${name.value}-${version.value}.jar")
-    .settings(libraryDependencies ++= Seq(hyperscalaCore, powerscalaCommand, powerscalaConcurrent))
+    .settings(libraryDependencies ++= Seq(youiServer, powerscalaCommand, powerscalaConcurrent))
     .dependsOn(runner)
   lazy val example = project.in(file("example"))
     .settings(basicSettings("app"))
@@ -110,7 +110,7 @@ object Dependencies {
   val powerscalaIO = "org.powerscala" %% "powerscala-io" % "2.0.3"
   val powerscalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.3"
   val powerscalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.3"
-  val hyperscalaCore = "org.hyperscala" %% "hyperscala-core" % "2.1.10"
+  val youiServer = "io.youi" %% "youi-server-undertow" % "0.2.0-SNAPSHOT"
   val proguard = "net.sf.proguard" % "proguard-base" % "5.3.2"
   val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   val scribe = "com.outr" %% "scribe-slf4j" % "1.3.2"
