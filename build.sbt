@@ -11,20 +11,16 @@ resolvers in ThisBuild ++= Seq(
 )
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
 
-val asm = "org.ow2.asm" % "asm" % "5.2"
-val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M15-4"
-val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M15-4"
-val packr = "com.bladecoder.packr" % "packr" % "2.1"
-val powerScalaCore = "org.powerscala" %% "powerscala-core" % "2.0.5"
-val powerScalaIO = "org.powerscala" %% "powerscala-io" % "2.0.5"
-val powerScalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.5"
-val powerScalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.5"
-val proguard = "net.sf.proguard" % "proguard-base" % "5.3.2"
-val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
-val scribe = "com.outr" %% "scribe-slf4j" % "1.4.1"
+val asmVersion = "5.2"
+val coursierVersion = "1.0.0-M15-4"
+val packrVersion = "2.1"
+val powerScalaVersion = "2.0.5"
+val proguardVersion = "5.3.2"
+val scalaXMLVersion = "1.0.6"
+val scribeVersion = "1.4.1"
 
-val reactify = "com.outr" %% "reactify" % "1.4.5-SNAPSHOT"
-val youIServer = "io.youi" %% "youi-server-undertow" % "0.2.2-SNAPSHOT"
+val reactifyVersion = "1.4.5-SNAPSHOT"
+val youiVersion = "0.2.2-SNAPSHOT"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, consoleJVM, consoleJS, example)
@@ -34,63 +30,87 @@ lazy val root = project.in(file("."))
 
 lazy val launch = project.in(file("launch"))
   .settings(
+    name := "jefe-launch",
     libraryDependencies ++= Seq(
-      reactify,
-      scribe
+      "com.outr" %% "reactify" % reactifyVersion,
+      "com.outr" %% "scribe-slf4j" % scribeVersion
     )
   )
 
 lazy val manager = project.in(file("manager"))
   .settings(
+    name := "jefe-manager",
     libraryDependencies ++= Seq(
-      coursier,
-      coursierCache,
-      powerScalaCore,
-      powerScalaIO,
-      scalaXML,
-      scribe
+      "io.get-coursier" %% "coursier" % coursierVersion,
+      "io.get-coursier" %% "coursier-cache" % coursierVersion,
+      "org.powerscala" %% "powerscala-core" % powerScalaVersion,
+      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
+      "org.scala-lang.modules" %% "scala-xml" % scalaXMLVersion,
+      "com.outr" %% "scribe-slf4j" % scribeVersion
     )
   )
 
 lazy val runner = project.in(file("runner"))
   .settings(
+    name := "jefe-runner",
     assemblyJarName in assembly := "runner.jar"
   )
   .dependsOn(launch, manager)
 
 lazy val optimizer = project.in(file("optimizer"))
   .settings(
+    name := "jefe-optimizer",
     libraryDependencies ++= Seq(
-      powerScalaCore,
-      powerScalaIO,
-      scribe,
-      asm
+      "org.powerscala" %% "powerscala-core" % powerScalaVersion,
+      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
+      "com.outr" %% "scribe-slf4j" % scribeVersion,
+      "org.ow2.asm" % "asm" % asmVersion
     )
   )
 
 lazy val pack = project.in(file("pack"))
   .settings(
+    name := "jefe-pack",
     libraryDependencies ++= Seq(
-      packr,
-      proguard
+      "com.bladecoder.packr" % "packr" % packrVersion,
+      "net.sf.proguard" % "proguard-base" % proguardVersion
     )
   )
   .dependsOn(runner, optimizer)
 
 lazy val server = project.in(file("server"))
   .settings(
+    name := "jefe-server",
     assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      youIServer,
-      powerScalaCommand,
-      powerScalaConcurrent
+      "io.youi" %% "youi-server-undertow" % youiVersion,
+      "org.powerscala" %% "powerscala-command" % powerScalaVersion,
+      "org.powerscala" %% "powerscala-concurrent" % powerScalaVersion
     )
   )
   .dependsOn(runner)
 
 lazy val console = crossProject.in(file("console"))
+  .settings(
+    name := "jefe-console",
+    libraryDependencies ++= Seq(
+      "io.youi" %%% "youi-app" % youiVersion
+    )
+  )
+  .jsSettings(
+    crossTarget in fastOptJS := baseDirectory.value / ".." / "jvm" / "src" / "main" / "resources" / "app",
+    crossTarget in fullOptJS := baseDirectory.value / ".." / "jvm" / "src" / "main" / "resources" / "app"
+  )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      "io.youi" %% "youi-server-undertow" % youiVersion
+    )
+  )
 lazy val consoleJVM = console.jvm
 lazy val consoleJS = console.js
 
 lazy val example = project.in(file("example"))
+  .settings(
+    name := "jefe-example"
+  )
   .dependsOn(launch, manager)
