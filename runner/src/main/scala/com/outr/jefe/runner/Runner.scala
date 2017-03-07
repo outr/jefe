@@ -5,7 +5,7 @@ import java.io.File
 
 import com.outr.jefe.launch.{Launcher, LauncherInstance, LauncherStatus}
 import com.outr.jefe.repo._
-import com.outr.scribe.Logging
+import scribe.Logging
 
 class Arguments(args: Array[String]) {
   private var entries = args.toList

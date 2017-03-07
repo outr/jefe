@@ -4,10 +4,10 @@ import java.io.File
 import java.net.{InetSocketAddress, URI}
 
 import com.outr.jefe.server.config.InboundDomain
-import com.outr.reactify.{ChangeListener, Var}
-import com.outr.scribe.formatter.Formatter
-import com.outr.scribe.writer.FileWriter
-import com.outr.scribe.{Level, LogHandler, Logger, Logging}
+import reactify.{ChangeListener, Var}
+import scribe.formatter.Formatter
+import scribe.writer.FileWriter
+import scribe.{Level, LogHandler, Logger, Logging}
 import io.youi.{Priority, http}
 import io.youi.http.{Content, HttpConnection, HttpRequest, ProxyHandler}
 import io.youi.net.{ContentType, URL, URLMatcher}
@@ -24,9 +24,9 @@ object ProxyServer extends UndertowServer with Logging {
 
   private var proxyHandlers = List.empty[HttpHandler]
 
-  init()
+  override protected def init(): Unit = {
+    super.init()
 
-  private def init(): Unit = {
     def register(path: String)(f: HttpRequest => String): Unit = {
       handler.matcher(http.path.exact(path)).priority(Priority.High).caching(CachingManager.NotCached).handle { httpConnection =>
         val request = httpConnection.request

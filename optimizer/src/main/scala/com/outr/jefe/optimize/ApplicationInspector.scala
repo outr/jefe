@@ -2,7 +2,7 @@ package com.outr.jefe.optimize
 
 import java.util.jar.JarFile
 
-import com.outr.scribe.Logging
+import scribe.Logging
 import org.objectweb.asm._
 
 import scala.annotation.tailrec

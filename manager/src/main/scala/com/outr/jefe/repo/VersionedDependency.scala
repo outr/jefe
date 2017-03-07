@@ -1,6 +1,6 @@
 package com.outr.jefe.repo
 
-import com.outr.scribe.Logging
+import scribe.Logging
 import org.powerscala.Version
 
 case class VersionedDependency(dependency: Dependency, version: Version, scope: Option[String], repository: Option[Repository]) extends Ordered[VersionedDependency] with Logging {

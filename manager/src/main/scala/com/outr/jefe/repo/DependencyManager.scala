@@ -2,7 +2,7 @@ package com.outr.jefe.repo
 
 import java.io.File
 
-import com.outr.scribe.Logging
+import scribe.Logging
 
 import scalaz.concurrent.Task
 

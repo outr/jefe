@@ -1,6 +1,6 @@
 package com.outr.jefe.launch
 
-import com.outr.scribe.Logging
+import scribe.Logging
 
 import scala.collection.JavaConverters._
 

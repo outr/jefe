@@ -1,6 +1,6 @@
 package com.outr.jefe.launch
 
-import com.outr.reactify.{StateChannel, Var}
+import reactify.{StateChannel, Var}
 
 trait LauncherInstance {
   protected val _status: Var[LauncherStatus] = Var[LauncherStatus](LauncherStatus.NotStarted)

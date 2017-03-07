@@ -2,7 +2,7 @@ package com.outr.jefe
 
 import com.outr.jefe.repo._
 import com.outr.jefe.launch.Launcher
-import com.outr.scribe.Logging
+import scribe.Logging
 
 object Test extends App with Logging {
 //  val repositories = List(Ivy2.Local, Ivy2.Cache, Maven.Repo1)

@@ -4,7 +4,7 @@ import java.io.{File, FileOutputStream}
 import java.net.URLClassLoader
 import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
-import com.outr.scribe.Logging
+import scribe.Logging
 import org.powerscala.StringUtil
 import org.powerscala.io._
 

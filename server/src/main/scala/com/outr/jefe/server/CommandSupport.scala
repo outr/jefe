@@ -1,6 +1,6 @@
 package com.outr.jefe.server
 
-import com.outr.scribe.{Logging, Platform}
+import scribe.{Logging, Platform}
 import org.powerscala.command.{Command, CommandImplementation, CommandInterpreter, CommandManager, StandardIO}
 
 object CommandSupport extends CommandManager with CommandInterpreter with Logging {

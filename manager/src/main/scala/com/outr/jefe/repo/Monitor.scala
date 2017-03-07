@@ -4,7 +4,7 @@ import java.awt.{BorderLayout, Font, GraphicsEnvironment}
 import java.io.File
 import javax.swing.{BorderFactory, JDialog, JFrame, JLabel, JPanel, JProgressBar, SwingConstants, SwingUtilities}
 
-import com.outr.scribe.Logging
+import scribe.Logging
 
 trait Monitor extends Logging {
   private var downloading = Map.empty[String, Downloading]

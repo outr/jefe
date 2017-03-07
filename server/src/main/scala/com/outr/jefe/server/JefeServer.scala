@@ -7,9 +7,9 @@ import com.outr.jefe.runner.{Arguments, Repositories}
 
 import scala.xml.{Elem, Node, NodeSeq, XML}
 import com.outr.jefe.server.config._
-import com.outr.reactify.Var
-import com.outr.scribe.writer.FileWriter
-import com.outr.scribe.{LogHandler, Logger, Logging}
+import reactify.Var
+import scribe.writer.FileWriter
+import scribe.{LogHandler, Logger, Logging}
 import io.youi.Priority
 import io.youi.net.URL
 import io.youi.server.KeyStore
