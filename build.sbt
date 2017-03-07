@@ -10,24 +10,24 @@ resolvers in ThisBuild ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
-fork in ThisBuild := true
 
+val asm = "org.ow2.asm" % "asm" % "5.2"
 val coursier = "io.get-coursier" %% "coursier" % "1.0.0-M15-4"
 val coursierCache = "io.get-coursier" %% "coursier-cache" % "1.0.0-M15-4"
-val reactify = "com.outr" %% "reactify" % "1.4.5-SNAPSHOT"
 val packr = "com.bladecoder.packr" % "packr" % "2.1"
 val powerScalaCore = "org.powerscala" %% "powerscala-core" % "2.0.5"
 val powerScalaIO = "org.powerscala" %% "powerscala-io" % "2.0.5"
 val powerScalaCommand = "org.powerscala" %% "powerscala-command" % "2.0.5"
 val powerScalaConcurrent = "org.powerscala" %% "powerscala-concurrent" % "2.0.5"
-val youIServer = "io.youi" %% "youi-server-undertow" % "0.2.2-SNAPSHOT"
 val proguard = "net.sf.proguard" % "proguard-base" % "5.3.2"
 val scalaXML = "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 val scribe = "com.outr" %% "scribe-slf4j" % "1.4.1"
-val asm = "org.ow2.asm" % "asm" % "5.2"
+
+val reactify = "com.outr" %% "reactify" % "1.4.5-SNAPSHOT"
+val youIServer = "io.youi" %% "youi-server-undertow" % "0.2.2-SNAPSHOT"
 
 lazy val root = project.in(file("."))
-  .aggregate(launch, manager, runner, optimizer, pack, server, console, example)
+  .aggregate(launch, manager, runner, optimizer, pack, server, consoleJVM, consoleJS, example)
   .settings(
     publishArtifact := false
   )
@@ -88,7 +88,9 @@ lazy val server = project.in(file("server"))
   )
   .dependsOn(runner)
 
-lazy val console = project.in(file("console"))
+lazy val console = crossProject.in(file("console"))
+lazy val consoleJVM = console.jvm
+lazy val consoleJS = console.js
 
 lazy val example = project.in(file("example"))
   .dependsOn(launch, manager)
