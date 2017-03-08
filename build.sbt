@@ -23,7 +23,7 @@ val reactifyVersion = "1.4.5-SNAPSHOT"
 val youiVersion = "0.2.2-SNAPSHOT"
 
 lazy val root = project.in(file("."))
-  .aggregate(launch, manager, runner, optimizer, pack, server, consoleJVM, consoleJS, example)
+  .aggregate(launch, manager, runner, optimizer, pack, server, example)
   .settings(
     publishArtifact := false
   )
@@ -89,25 +89,6 @@ lazy val server = project.in(file("server"))
     )
   )
   .dependsOn(runner)
-
-lazy val console = crossProject.in(file("console"))
-  .settings(
-    name := "jefe-console",
-    libraryDependencies ++= Seq(
-      "io.youi" %%% "youi-app" % youiVersion
-    )
-  )
-  .jsSettings(
-    crossTarget in fastOptJS := baseDirectory.value / ".." / "jvm" / "src" / "main" / "resources" / "app",
-    crossTarget in fullOptJS := baseDirectory.value / ".." / "jvm" / "src" / "main" / "resources" / "app"
-  )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      "io.youi" %% "youi-server-undertow" % youiVersion
-    )
-  )
-lazy val consoleJVM = console.jvm
-lazy val consoleJS = console.js
 
 lazy val example = project.in(file("example"))
   .settings(
