@@ -261,8 +261,8 @@ object JefeServer extends Logging {
           val group = (a \ "group").string
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
-          val scala = (a \ "scala").headOption.forall(_.text.toBoolean)
-          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, Repositories(), scala)
+          val scalaVersion = (a \ "scalaVersion").headOption.map(_.text)
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, Repositories(), scalaVersion)
         }
         case "static" => {
           val path = (a \ "path").string

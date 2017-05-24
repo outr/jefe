@@ -18,18 +18,18 @@ class DependencyAppConfig(val enabled: Boolean,
                           val jmxPort: Int,
                           val vmArgs: Seq[String],
                           val repositories: Repositories,
-                          val scala: Boolean = true) extends ProcessApplicationConfig {
+                          val scalaVersion: Option[String] = Some("2.12")) extends ProcessApplicationConfig {
   var instance: Option[ProcessLauncherInstance] = None
   var processMonitor: Option[JMXProcessMonitor] = None
 
   override def start(): Unit = synchronized {
     stop()
 
-    val dependency = if (scala) {
-      group %% artifact % version
-    } else {
-      group % artifact % version
+    val dependency = scalaVersion match {
+      case Some(v) => group % s"${artifact}_$v" % version
+      case None => group % artifact % version
     }
+
     val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true, vmArgs = vmArgs.toArray)
     val li = Runner.run(config).asInstanceOf[ProcessLauncherInstance]
     instance = Some(li)

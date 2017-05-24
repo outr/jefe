@@ -15,5 +15,5 @@ class WARAppConfig(enabled: Boolean, war: File, port: Int, jmxPort: Int, vmArgs:
   jmxPort,
   vmArgs,
   Repositories(),
-  scala = false
+  scalaVersion = None
 )
