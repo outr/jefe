@@ -34,7 +34,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       val start = Resolution(Set(Dependency(Module(vd.group, vd.name), vd.version.toString())))
       val fetch = Fetch.from(repositories, Cache.fetch())
       val resolution = start.process.run(fetch).unsafePerformSync
-      val errors = resolution.errors
+      val errors = resolution.metadataErrors
       val conflicts = resolution.conflicts
 
       if (errors.nonEmpty) {
