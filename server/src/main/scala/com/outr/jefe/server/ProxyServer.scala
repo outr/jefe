@@ -123,5 +123,3 @@ object ProxyServer extends UndertowServer with Logging {
     super.start()
   }
 }
-
-case class ProxyMapping()

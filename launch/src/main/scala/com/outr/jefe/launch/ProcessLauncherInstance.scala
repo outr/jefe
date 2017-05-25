@@ -14,7 +14,7 @@ class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance 
 
   override def start(): Unit = synchronized {
     _status := LauncherStatus.Starting
-    logger.debug(s"Starting: ${builder.command().asScala.mkString(" ")}")
+    logger.info(s"Starting: ${builder.command().asScala.mkString(" ")}")
     process
     new Thread {
       // TODO: handle this better

@@ -23,12 +23,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.transform.RewriteRule
 
 object JefeServer extends Logging {
-  val started = System.currentTimeMillis()
+  val started: Long = System.currentTimeMillis()
 
   val configurations: Var[List[AppConfiguration]] = Var[List[AppConfiguration]](Nil)
   var directory: File = _
 
-  def main(args: Array[String]): Unit = {
+  def mainOld(args: Array[String]): Unit = {
     if (args.isEmpty) {
       println(
         """Usage: jefe <command> (options)
@@ -97,7 +97,7 @@ object JefeServer extends Logging {
 
   def send(host: String, port: Int, password: String, command: String, args: Map[String, String]): Unit = {
     val argsString = (args + ("password" -> password)).map(t => s"${t._1}=${URLEncoder.encode(t._2, "UTF-8")}").mkString("&")
-    val url = new java.net.URL(s"http://$host:$port/jefe/$command?${argsString}")
+    val url = new java.net.URL(s"http://$host:$port/jefe/$command?$argsString")
     val response = IO.stream(url.openStream(), new StringBuilder).toString
     println(response)
   }
@@ -262,7 +262,7 @@ object JefeServer extends Logging {
           val artifact = (a \ "artifact").string
           val version = (a \ "version").string
           val scalaVersion = (a \ "scalaVersion").headOption.map(_.text)
-          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, Repositories(), scalaVersion)
+          new DependencyAppConfig(enabled, directory, group, artifact, version, mainClass, args, jmxPort, vmArgs, Repositories.simple(), scalaVersion)
         }
         case "static" => {
           val path = (a \ "path").string
@@ -283,12 +283,12 @@ object JefeServer extends Logging {
     AppConfiguration(name, lastModified, proxies, app)
   }
 
-  def shutdown(): Unit = Future({
+  def shutdown(): Unit = {
     Thread.sleep(1000)      // Wait for one second
     configurations.foreach(_.application.foreach(_.stop()))
     ProxyServer.stop()
     System.exit(0)
-  })
+  }
 
   implicit class ExtraNode(n: NodeSeq) {
     def bool: Boolean = n.headOption.exists(_.text.toBoolean)

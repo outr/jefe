@@ -30,6 +30,8 @@ class DependencyAppConfig(val enabled: Boolean,
       case None => group % artifact % version
     }
 
+    scribe.info(s"Starting $dependency...")
+
     val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true, vmArgs = vmArgs.toArray)
     val li = Runner.run(config).asInstanceOf[ProcessLauncherInstance]
     instance = Some(li)

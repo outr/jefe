@@ -1,0 +1,26 @@
+{
+  "proxies": [
+    {
+      "enabled": true,
+      "inbound": {
+        "port": 8888,
+        "domains": [
+          "youi.io",
+          "www.youi.io"
+        ]
+      },
+      "outbound": "http://localhost:8080"
+    }
+  ],
+  "applications": [
+    {
+      "type": "dependency",
+      "enabled": true,
+      "group": "io.youi",
+      "artifact": "youi-server-example",
+      "version": "$version",
+      "mainClass": "io.youi.example.ServerExampleApplication",
+      "scalaVersion": "2.12"
+    }
+  ]
+}

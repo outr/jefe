@@ -34,6 +34,15 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       val start = Resolution(Set(Dependency(Module(vd.group, vd.name), vd.version.toString())))
       val fetch = Fetch.from(repositories, Cache.fetch())
       val resolution = start.process.run(fetch).unsafePerformSync
+      resolution.errorCache.foreach {
+        case (key, value) => scribe.error(s"Error Cache: $key = $value")
+      }
+//      resolution.dependencies.foreach { d =>
+//        scribe.info(s"Dependency: $d")
+//      }
+      resolution.dependencyArtifacts.foreach {
+        case (dependency, artifact) => scribe.info(s"Artifact: $dependency")
+      }
       val errors = resolution.metadataErrors
       val conflicts = resolution.conflicts
 

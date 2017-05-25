@@ -12,6 +12,7 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-e
 
 val asmVersion = "5.2"
 val coursierVersion = "1.0.0-RC3"
+val circeVersion = "0.8.0"
 val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
 val proguardVersion = "5.3.3"
@@ -83,9 +84,15 @@ lazy val server = project.in(file("server"))
     assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
       "io.youi" %% "youi-server-undertow" % youiVersion,
+      "io.youi" %% "youi-client" % youiVersion,
       "org.powerscala" %% "powerscala-command" % powerScalaVersion,
       "org.powerscala" %% "powerscala-concurrent" % powerScalaVersion
-    )
+    ),
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-generic",
+      "io.circe" %% "circe-parser"
+    ).map(_ % circeVersion)
   )
   .dependsOn(runner)
 
