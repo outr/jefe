@@ -13,7 +13,7 @@ case class Configuration(dependency: VersionedDependency,
                          vmArgs: Array[String] = Array.empty,
                          workingDirectory: File = new File("."),
                          showDialogIfPossible: Boolean = true,
-                         repositories: Repositories = Repositories.simple(),
+                         repositories: Repositories = Repositories(),
                          newProcess: Boolean = false)
 
 object Configuration {
@@ -38,20 +38,6 @@ object Configuration {
   }
 }
 
-case class Repositories(list: List[Repository]) {
+case class Repositories(list: List[Repository] = List(Ivy2.Local, Maven.Repo1, Sonatype.Releases, Sonatype.Snapshots)) {
   def withMaven(name: String, url: String): Repositories = copy(list ::: List(MavenRepository(name, url)))
-}
-
-object Repositories {
-  def simple(ivyLocal: Boolean = true,
-             ivyCache: Boolean = true,
-             maven: List[(String, String)] = List(Maven.Repo1, Sonatype.Releases, Sonatype.Snapshots).map(_.tupled)): Repositories = {
-    val b = ListBuffer.empty[Repository]
-    if (ivyLocal) b += Ivy2.Local
-    if (ivyCache) b += Ivy2.Cache
-    b ++= maven.map {
-      case (name, baseURL) => MavenRepository(name, baseURL)
-    }
-    Repositories(b.toList)
-  }
 }

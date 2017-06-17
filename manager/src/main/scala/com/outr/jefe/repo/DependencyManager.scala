@@ -37,23 +37,18 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
       resolution.errorCache.foreach {
         case (key, value) => scribe.error(s"Error Cache: $key = $value")
       }
-//      resolution.dependencies.foreach { d =>
-//        scribe.info(s"Dependency: $d")
-//      }
-      resolution.dependencyArtifacts.foreach {
-        case (dependency, artifact) => scribe.info(s"Artifact: $dependency")
-      }
       val errors = resolution.metadataErrors
       val conflicts = resolution.conflicts
-
+      assert(resolution.isDone)
       if (errors.nonEmpty) {
         logger.warn(s"Errors for ($vd): $errors")
       }
       if (conflicts.nonEmpty) {
         throw new RuntimeException(s"Conflicts for ($vd): $conflicts")
       }
-      val localArtifacts = Task.gatherUnordered(
-        resolution.artifacts.map(Cache.file(_, logger = Some(monitor.cacheLogger)).run)
+      val keepTypes = Set("jar", "bundle")
+      val localArtifacts = scalaz.concurrent.Task.gatherUnordered(
+        resolution.dependencyArtifacts.map(_._2).filter(a => keepTypes(a.`type`)).map(Cache.file(_, logger = None).run)
       ).unsafePerformSync
       val fileErrors = localArtifacts.map(_.toEither).collect {
         case Left(err) => err

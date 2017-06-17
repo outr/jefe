@@ -177,5 +177,4 @@ case class ApplicationConfiguration(`type`: String,
                                     args: Option[List[String]],
                                     vmArgs: Option[List[String]],
                                     ivyLocal: Option[Boolean],
-                                    ivyCache: Option[Boolean],
                                     mavenRepositories: Option[Map[String, String]])

@@ -9,7 +9,7 @@ class WARAppConfig(enabled: Boolean,
                    port: Int,
                    jmxPort: Int,
                    vmArgs: Seq[String],
-                   repositories: Repositories = Repositories.simple()) extends DependencyAppConfig(
+                   repositories: Repositories = Repositories()) extends DependencyAppConfig(
   enabled,
   war.getParentFile,
   "org.eclipse.jetty",

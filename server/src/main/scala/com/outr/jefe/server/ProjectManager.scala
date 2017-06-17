@@ -56,7 +56,6 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
     }
     val repositoriesList: List[Repository] = List(
       if (c.ivyLocal.getOrElse(true)) List(Ivy2.Local) else Nil,
-      if (c.ivyCache.getOrElse(true)) List(Ivy2.Cache) else Nil,
       mavenRepositories
     ).flatten
     val repositories = Repositories(repositoriesList)

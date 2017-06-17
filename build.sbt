@@ -19,8 +19,8 @@ val proguardVersion = "5.3.3"
 val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.2"
 
-val reactifyVersion = "1.5.3"
-val youiVersion = "0.3.4"
+val reactifyVersion = "2.0.2"
+val youiVersion = "0.4.0"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)

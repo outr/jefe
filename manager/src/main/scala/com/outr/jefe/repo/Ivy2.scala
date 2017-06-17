@@ -27,7 +27,7 @@ object Ivy2 {
 
     override def toString: String = "Ivy2.Local"
   }
-  object Cache extends Repository {
+  /*object Cache extends Repository {
     private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/cache")
 
     val internal = coursier.Cache.ivy2Cache
@@ -48,5 +48,5 @@ object Ivy2 {
     }
 
     override def toString: String = "Ivy2.Cache"
-  }
+  }*/
 }
