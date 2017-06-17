@@ -17,7 +17,7 @@
       "type": "dependency",
       "enabled": true,
       "group": "io.youi",
-      "artifact": "youi-server-example",
+      "artifact": "youi-example",
       "version": "$version",
       "mainClass": "io.youi.example.ServerExampleApplication",
       "scalaVersion": "2.12"
