@@ -31,7 +31,7 @@ case class DependencyManager(repositories: Seq[Repository], monitor: Monitor = M
     case "latest" | "latest.integration" => resolve(latest(vd.dependency).getOrElse(throw new RuntimeException(s"No version available for ${vd.dependency}.")))
     case _ => {
       import coursier._
-      val start = Resolution(Set(Dependency(Module(vd.group, vd.name), vd.version.toString())))
+      val start = Resolution(Set(Dependency(Module(vd.group, vd.name), vd.version.toString(), "runtime")))
       val fetch = Fetch.from(repositories, Cache.fetch())
       val resolution = start.process.run(fetch).unsafePerformSync
       resolution.errorCache.foreach {

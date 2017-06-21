@@ -11,7 +11,7 @@ resolvers in ThisBuild ++= Seq(
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
 
 val asmVersion = "5.2"
-val coursierVersion = "1.0.0-RC3"
+val coursierVersion = "1.0.0-RC5"
 val circeVersion = "0.8.0"
 val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
@@ -19,7 +19,7 @@ val proguardVersion = "5.3.3"
 val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.2"
 
-val reactifyVersion = "2.0.2"
+val reactifyVersion = "2.0.3"
 val youiVersion = "0.4.0"
 
 lazy val root = project.in(file("."))
