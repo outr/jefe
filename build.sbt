@@ -20,7 +20,7 @@ val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.2"
 
 val reactifyVersion = "2.0.3"
-val youiVersion = "0.4.0"
+val youiVersion = "0.4.3"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)
