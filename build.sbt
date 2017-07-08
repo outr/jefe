@@ -17,7 +17,7 @@ val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
 val proguardVersion = "5.3.3"
 val scalaXMLVersion = "1.0.6"
-val scribeVersion = "1.4.2"
+val scribeVersion = "1.4.3"
 
 val reactifyVersion = "2.0.3"
 val youiVersion = "0.4.4"

@@ -3,13 +3,13 @@
     {
       "enabled": true,
       "inbound": {
-        "port": 8888,
+        "port": 8080,
         "domains": [
           "youi.io",
           "www.youi.io"
         ]
       },
-      "outbound": "http://localhost:8080"
+      "outbound": "http://localhost:8889"
     }
   ],
   "applications": [

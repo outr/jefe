@@ -8,11 +8,12 @@ import io.circe.parser._
 import io.youi.client.HttpClient
 import io.youi.net.URL
 import org.powerscala.io._
+import profig._
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-object Jefe {
+object Jefe extends ConfigApplication {
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
   private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
 
@@ -26,7 +27,7 @@ object Jefe {
     remoteCommands += command.toLowerCase -> action
   }
 
-  def main(args: Array[String]): Unit = {
+  /*def main(args: Array[String]): Unit = {
     if (args.length < 2) {
       println(
         """Usage: jefe <start path> <command> [additional args]*
@@ -55,6 +56,34 @@ object Jefe {
           scribe.error(s"Command '$command' failed!")
         }
       }
+    }
+  }*/
+
+  override protected def run(): Unit = {
+    val root = new File(Config("path").as[Option[String]].getOrElse("."))
+    val jefeConfig = new File(root, "jefe.json")
+    if (jefeConfig.exists()) Config.merge(jefeConfig)
+    val configuration = Config.as[MainConfiguration]
+    Config("arg1").as[Option[String]] match {
+      case Some(command) if jefeConfig.exists() =>{
+        if (run(LocalCommand(command, configuration, root))) {
+          scribe.info(s"Command '$command' completed successfully!")
+        } else {
+          scribe.error(s"Command '$command' failed!")
+        }
+      }
+      case None => println(
+        """Usage: jefe <command> [additional args]*
+          | Commands:
+          |   start - starts the server instance
+          |   stop - stops the server instance
+          |   status - the current server status
+          | Additional Arguments:
+          |   --path
+          |       Defines the start path where jefe.json can be found. Defaults to the current path.
+          | Example:
+          |   jefe --path=/opt/server start
+        """.stripMargin)
     }
   }
 
@@ -140,11 +169,11 @@ object Jefe {
   }
 }
 
-case class LocalCommand(value: String, args: List[String], configuration: MainConfiguration, baseDirectory: File) {
-  def toRemote: RemoteCommand = RemoteCommand(value, args, configuration.password, baseDirectory.getCanonicalPath)
+case class LocalCommand(value: String, configuration: MainConfiguration, baseDirectory: File) {
+  def toRemote: RemoteCommand = RemoteCommand(value, configuration.password, baseDirectory.getCanonicalPath)
 }
 
-case class RemoteCommand(value: String, args: List[String], password: Option[String], baseDirectory: String)
+case class RemoteCommand(value: String, password: Option[String], baseDirectory: String)
 
 case class RemoteResponse(messages: List[String], success: Boolean)
 
