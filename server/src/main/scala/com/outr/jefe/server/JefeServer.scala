@@ -222,7 +222,7 @@ object JefeServer extends Logging {
       }).toList
       val outboundXML = p \ "outbound"
       val outboundURI = URL(outboundXML.text)
-      val keyStore = (outboundXML \ "@keyStore").stringOption.map(p => KeyStore(new File(p), (outboundXML \ "@password").string))
+      val keyStore = (outboundXML \ "@keyStore").stringOption.map(p => KeyStore(p, (outboundXML \ "@password").string))
       val outbound = Outbound(outboundURI, keyStore)
       val priority = Priority.byName((p \ "priority").text).getOrElse(Priority.Normal)
       ProxyConfig(enabled, inboundPort, inbound, outbound, priority)
