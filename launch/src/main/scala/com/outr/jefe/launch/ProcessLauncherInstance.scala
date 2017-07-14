@@ -2,8 +2,6 @@ package com.outr.jefe.launch
 
 import scribe.Logging
 
-import scala.collection.JavaConverters._
-
 class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance with Logging {
   private lazy val process = builder.inheritIO().start()
   lazy val processId: Int = {
@@ -14,7 +12,6 @@ class ProcessLauncherInstance(builder: ProcessBuilder) extends LauncherInstance 
 
   override def start(): Unit = synchronized {
     _status := LauncherStatus.Starting
-    logger.info(s"Starting: ${builder.command().asScala.mkString(" ")}")
     process
     new Thread {
       // TODO: handle this better

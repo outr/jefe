@@ -9,11 +9,24 @@ import io.youi.client.HttpClient
 import io.youi.net.URL
 import org.powerscala.io._
 import profig._
+import reactify.Var
+import scribe.formatter.Formatter
+import scribe._
+import scribe.writer.FileWriter
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 object Jefe extends ConfigApplication {
+  val password: Var[String] = Var("")
+
+  lazy val access: Logger = {
+    val logger = new Logger(parentName = None)
+    val logPath = Config("log.access.path").as[Option[String]].map(new File(_)).getOrElse(new File("logs/access"))
+    logger.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", logPath)))
+    logger
+  }
+
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
   private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
 
@@ -27,37 +40,10 @@ object Jefe extends ConfigApplication {
     remoteCommands += command.toLowerCase -> action
   }
 
-  /*def main(args: Array[String]): Unit = {
-    if (args.length < 2) {
-      println(
-        """Usage: jefe <start path> <command> [additional args]*
-          | Start Path: Specifies the relative or absolute path to the jefe.json file.
-          | Commands:
-          |   start - starts the server instance
-          |   stop - stops the server instance
-          |   status - the current server status
-          | Example:
-          |   jefe /opt/server/ start
-        """.stripMargin)
-    } else {
-      val baseDirectory = new File(args.head)
-      val command = args(1)
-
-      // Load configuration
-      val arguments = args.toList.tail.tail
-      val configFile = new File(baseDirectory, "jefe.json")
-      assert(configFile.isFile, s"Unable to find jefe.json at ${configFile.getAbsolutePath}.")
-      val configString = IO.stream(configFile, new StringBuilder).toString
-      decode[MainConfiguration](configString) match {
-        case Left(error) => throw error
-        case Right(configuration) => if (run(LocalCommand(command, arguments, configuration, baseDirectory))) {
-          scribe.info(s"Command '$command' completed successfully!")
-        } else {
-          scribe.error(s"Command '$command' failed!")
-        }
-      }
-    }
-  }*/
+  override def main(args: Array[String]): Unit = {
+    scribe.info(s"Args (${args.length}): ${args.mkString(", ")}")
+    super.main(args)
+  }
 
   override protected def run(): Unit = {
     val root = new File(Config("path").as[Option[String]].getOrElse("."))
@@ -72,7 +58,7 @@ object Jefe extends ConfigApplication {
           scribe.error(s"Command '$command' failed!")
         }
       }
-      case None => println(
+      case _ => println(
         """Usage: jefe <command> [additional args]*
           | Commands:
           |   start - starts the server instance
@@ -118,14 +104,14 @@ object Jefe extends ConfigApplication {
     val c = command.configuration
     update(command)
     if (c.startServer.getOrElse(true)) {
-      ProxyServer.config.clearListeners()
-      ProxyServer.config.addHttpListener(c.host.getOrElse("0.0.0.0"), c.port.getOrElse(8080))
+      Server.config.clearListeners()
+      Server.config.addHttpListener(c.host.getOrElse("0.0.0.0"), c.port.getOrElse(8080))
       c.ssl.foreach { ssl =>
-        ProxyServer.config.addHttpsListener(ssl.host, ssl.port, ssl.password, new File(ssl.keystore))
+        Server.config.addHttpsListener(ssl.host, ssl.port, ssl.password, new File(ssl.keystore))
       }
-      ProxyServer.password := c.password.getOrElse("")
+      password := c.password.getOrElse("")
 
-      ProxyServer.start()
+      Server.start()
     }
     CommandSupport.init()
 
@@ -182,7 +168,7 @@ case class MainConfiguration(host: Option[String],
                              startServer: Option[Boolean],
                              ssl: Option[SSLConfiguration],
                              password: Option[String],
-                             paths: List[String])
+                             paths: List[String] = Nil)
 
 case class SSLConfiguration(keystore: String, host: String, port: Int, password: String)
 

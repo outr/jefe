@@ -9,6 +9,7 @@ resolvers in ThisBuild ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
+cancelable in Global := true
 
 val asmVersion = "5.2"
 val coursierVersion = "1.0.0-RC6"
@@ -20,7 +21,7 @@ val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.3"
 
 val reactifyVersion = "2.0.3"
-val youiVersion = "0.4.5"
+val youiVersion = "0.4.7"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)
@@ -81,6 +82,7 @@ lazy val pack = project.in(file("pack"))
 lazy val server = project.in(file("server"))
   .settings(
     name := "jefe-server",
+    fork in run := true,
     assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
       "io.youi" %% "youi-server-undertow" % youiVersion,

@@ -15,7 +15,12 @@ import scala.annotation.tailrec
 object ProjectManager {
   private var instances = Map.empty[String, ProjectInstance]
 
+  Runtime.getRuntime.addShutdownHook(new Thread {
+    override def run(): Unit = ProjectManager.stop()
+  })
+
   def update(directory: File, configuration: ProjectConfiguration): Unit = synchronized {
+    scribe.info("ProjectManager update!")
     val path = directory.getCanonicalPath
     val currentOption = instances.get(path)
     if (currentOption.map(_.configuration).contains(configuration)) {
@@ -31,6 +36,13 @@ object ProjectManager {
       instances += path -> instance
       instance.start()
     }
+  }
+
+  def stop(): Unit = synchronized {
+    instances.values.foreach { instance =>
+      instance.stop()
+    }
+    instances = Map.empty
   }
 }
 
@@ -88,13 +100,15 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
   }
   private val proxies: List[HttpHandler] = configuration.proxies.flatMap { c =>
     if (c.enabled) {
-      Some(ProxyServer.handler.proxy(new ProxyHandler {
+      Some(Server.handler.proxy(new ProxyHandler {
         private val outbound = URL(c.outbound)
 
         override def proxy(connection: HttpConnection): Option[URL] = {
           val url = connection.request.url
           if (c.inbound.domains.exists(url.host.matches) && c.inbound.port == url.port) {
-            Some(outbound)
+            val out = outbound.withPath(url.path.toString())
+            Jefe.access.info(s"Proxying for ${directory.getPath} - From: $url, To: $out")
+            Some(out)
           } else {
             None
           }
@@ -106,11 +120,13 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
   }
 
   def start(): Unit = {
+    scribe.info(s"Starting ${directory.getName}...")
     applications.foreach(_.start())
-    proxies.foreach(proxy => ProxyServer.handlers += proxy)
+    proxies.foreach(proxy => Server.handlers += proxy)
   }
   def stop(): Unit = {
-    proxies.foreach(proxy => ProxyServer.handlers -= proxy)
+    scribe.info(s"Stopping ${directory.getName}...")
+    proxies.foreach(proxy => Server.handlers -= proxy)
     applications.foreach(_.stop())
   }
 }

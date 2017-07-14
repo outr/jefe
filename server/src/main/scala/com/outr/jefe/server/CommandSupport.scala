@@ -26,12 +26,12 @@ object CommandSupport extends CommandManager with CommandInterpreter with Loggin
           | enable: enables an application and then reloads the configuration
           | disable: disables an application and then reloads the configuration
         """.stripMargin)
-      case ListApps => println(JefeServer.list())
-      case Status => println(JefeServer.status())
-      case Update => JefeServer.updateDirectories()
-      case Enable(appName) => JefeServer.changeEnabled(appName, enable = true)
-      case Disable(appName) => JefeServer.changeEnabled(appName, enable = false)
-      case Quit => JefeServer.shutdown()
+//      case ListApps => println(JefeServer.list())
+//      case Status => println(JefeServer.status())
+//      case Update => JefeServer.updateDirectories()
+//      case Enable(appName) => JefeServer.changeEnabled(appName, enable = true)
+//      case Disable(appName) => JefeServer.changeEnabled(appName, enable = false)
+//      case Quit => JefeServer.shutdown()
     }
   } catch {
     case t: Throwable => logger.error(t)
