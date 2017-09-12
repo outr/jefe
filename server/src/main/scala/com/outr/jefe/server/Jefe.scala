@@ -127,7 +127,7 @@ object Jefe extends ConfigApplication {
 
   def start(command: LocalCommand): Boolean = {
     val c = command.configuration
-    update(command)
+    update(command.configuration, command.baseDirectory)
     if (c.startServer.getOrElse(true)) {
       Server.config.clearListeners()
       Server.config.addHttpListener(c.host.getOrElse("0.0.0.0"), c.port.getOrElse(8080))
@@ -154,9 +154,9 @@ object Jefe extends ConfigApplication {
     false
   }
 
-  def update(command: LocalCommand): Boolean = {
-    command.configuration.paths.foreach { path =>
-      val directory = new File(command.baseDirectory, path)
+  def update(configuration: MainConfiguration, baseDirectory: File): Boolean = {
+    configuration.paths.foreach { path =>
+      val directory = new File(baseDirectory, path)
       var jsonOption: Option[Json] = None
       val configFiles = directory.listFiles().filter(_.getName.endsWith(".jefe.json"))
       configFiles.foreach { f =>
@@ -190,42 +190,3 @@ object Jefe extends ConfigApplication {
     true
   }
 }
-
-case class LocalCommand(value: String, configuration: MainConfiguration, baseDirectory: File) {
-  def toRemote: RemoteCommand = RemoteCommand(value, configuration.password, baseDirectory.getCanonicalPath)
-}
-
-case class RemoteCommand(value: String, password: Option[String], base: String)
-
-case class RemoteResponse(messages: List[String], success: Boolean)
-
-case class MainConfiguration(host: Option[String] = None,
-                             port: Option[Int] = None,
-                             startServer: Option[Boolean] = None,
-                             ssl: Option[SSLConfiguration] = None,
-                             password: Option[String] = None,
-                             paths: List[String] = Nil)
-
-case class SSLConfiguration(keystore: String, host: String, port: Int, password: String)
-
-case class ProjectConfiguration(proxies: List[ProxyConfiguration],
-                                applications: List[ApplicationConfiguration],
-                                properties: Map[String, String])
-
-case class ProxyConfiguration(enabled: Boolean, inbound: ProxyInboundConfiguration, outbound: String)
-
-case class ProxyInboundConfiguration(port: Int, domains: List[String])
-
-case class ApplicationConfiguration(`type`: String,
-                                    enabled: Option[Boolean],
-                                    group: Option[String],
-                                    artifact: Option[String],
-                                    version: Option[String],
-                                    mainClass: Option[String],
-                                    scala: Option[Boolean],
-                                    scalaVersion: Option[String],
-                                    basePath: Option[String],
-                                    args: Option[List[String]],
-                                    vmArgs: Option[List[String]],
-                                    ivyLocal: Option[Boolean],
-                                    mavenRepositories: Option[Map[String, String]])
