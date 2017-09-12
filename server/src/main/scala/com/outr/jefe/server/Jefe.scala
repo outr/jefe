@@ -5,7 +5,8 @@ import java.io.File
 import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.parser._
-import io.youi.client.HttpClient
+import io.youi.client.{ErrorHandler, HttpClient}
+import io.youi.http.{HttpRequest, HttpResponse}
 import io.youi.net.URL
 import org.powerscala.io._
 import profig._
@@ -16,6 +17,7 @@ import scribe.writer.FileWriter
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Jefe extends ConfigApplication {
   val password: Var[String] = Var("")
@@ -30,7 +32,11 @@ object Jefe extends ConfigApplication {
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
   private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
 
+  val configuration: Var[MainConfiguration] = Var(MainConfiguration())
+  val root: Var[File] = Var(new File("."))
+
   addLocal("start", start)
+  addRemote("stop", stop)
 
   def addLocal(command: String, action: LocalCommand => Boolean): Unit = synchronized {
     localCommands += command.toLowerCase -> action
@@ -46,10 +52,10 @@ object Jefe extends ConfigApplication {
   }
 
   override protected def run(): Unit = {
-    val root = new File(Config("path").as[Option[String]].getOrElse("."))
+    root := new File(Config("path").as[Option[String]].getOrElse("."))
     val jefeConfig = new File(root, "jefe.json")
     if (jefeConfig.exists()) Config.merge(jefeConfig)
-    val configuration = Config.as[MainConfiguration]
+    configuration := Config.as[MainConfiguration]
     Config("arg1").as[Option[String]] match {
       case Some(command) if jefeConfig.exists() =>{
         if (run(LocalCommand(command, configuration, root))) {
@@ -80,14 +86,23 @@ object Jefe extends ConfigApplication {
   def run(command: LocalCommand): Boolean = localCommands.get(command.value) match {
     case Some(action) => action(command)
     case None => if (remoteCommands.contains(command.value)) {
-      val response = Await.result(remote(command), 10.minutes)
-      response.messages.foreach { message =>
-        scribe.info(message)
+      if (Server.isRunning) {
+        val action = remoteCommands(command.value)
+        action(command)
+      } else {
+        val response = Await.result(remote(command), 10.minutes)
+        response.messages.foreach { message =>
+          scribe.info(message)
+        }
+        response.success
       }
-      response.success
     } else {
       throw new RuntimeException(s"No command '${command.value}` supported.")
     }
+  }
+
+  def localize(command: RemoteCommand): LocalCommand = {
+    LocalCommand(command.value, Config.as[MainConfiguration], new File(command.base))
   }
 
   /**
@@ -98,7 +113,16 @@ object Jefe extends ConfigApplication {
     val port = command.configuration.port.getOrElse(8080)
     val url = URL(s"http://$host:$port/jefe/remote")
     val client = new HttpClient
-    client.restful[RemoteCommand, RemoteResponse](url, command.toRemote)
+    val future = client.restful[RemoteCommand, RemoteResponse](url, command.toRemote, errorHandler = new ErrorHandler[RemoteResponse] {
+      override def apply(request: HttpRequest, response: HttpResponse, throwable: Option[Throwable]): RemoteResponse = {
+        scribe.error(response.content)
+        throw throwable.getOrElse(new RuntimeException("Error while processing response!"))
+      }
+    })
+    future.onComplete { _ =>
+      client.dispose()
+    }
+    future
   }
 
   def start(command: LocalCommand): Boolean = {
@@ -116,6 +140,18 @@ object Jefe extends ConfigApplication {
     }
 
     true
+  }
+
+  def stop(command: LocalCommand): Boolean = if (Server.isRunning) {
+    scribe.info("Received command to shutdown server. Shutting down in 5 seconds...")
+    Future {
+      Thread.sleep(5000L)
+      scribe.info("Shutting down server.")
+      Server.stop()
+    }
+    true
+  } else {
+    false
   }
 
   def update(command: LocalCommand): Boolean = {
@@ -159,15 +195,15 @@ case class LocalCommand(value: String, configuration: MainConfiguration, baseDir
   def toRemote: RemoteCommand = RemoteCommand(value, configuration.password, baseDirectory.getCanonicalPath)
 }
 
-case class RemoteCommand(value: String, password: Option[String], baseDirectory: String)
+case class RemoteCommand(value: String, password: Option[String], base: String)
 
 case class RemoteResponse(messages: List[String], success: Boolean)
 
-case class MainConfiguration(host: Option[String],
-                             port: Option[Int],
-                             startServer: Option[Boolean],
-                             ssl: Option[SSLConfiguration],
-                             password: Option[String],
+case class MainConfiguration(host: Option[String] = None,
+                             port: Option[Int] = None,
+                             startServer: Option[Boolean] = None,
+                             ssl: Option[SSLConfiguration] = None,
+                             password: Option[String] = None,
                              paths: List[String] = Nil)
 
 case class SSLConfiguration(keystore: String, host: String, port: Int, password: String)
