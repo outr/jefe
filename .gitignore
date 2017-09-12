@@ -4,3 +4,4 @@ target/
 output/
 *-fastopt.js
 *-fastopt.js.map
+*.log

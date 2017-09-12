@@ -6,7 +6,8 @@
         "port": 8080,
         "domains": [
           "youi.io",
-          "www.youi.io"
+          "www.youi.io",
+          "darkfrog.youi.io"
         ]
       },
       "outbound": "http://localhost:8889"

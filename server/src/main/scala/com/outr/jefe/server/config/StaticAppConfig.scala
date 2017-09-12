@@ -2,10 +2,10 @@ package com.outr.jefe.server.config
 
 import java.io.File
 
-import io.youi.server.UndertowServer
+import io.youi.server.Server
 
 class StaticAppConfig(val enabled: Boolean, host: String, port: Int, directory: File) extends ApplicationConfig {
-  private val server = new UndertowServer
+  private object server extends Server
   server.config.clearListeners().addHttpListener(host, port)
   server.handler.file(directory)
 

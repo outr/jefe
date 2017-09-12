@@ -42,7 +42,7 @@ object Jefe extends ConfigApplication {
 
   override def main(args: Array[String]): Unit = {
     scribe.info(s"Args (${args.length}): ${args.mkString(", ")}")
-    super.main(args)
+    start(args)
   }
 
   override protected def run(): Unit = {
@@ -58,6 +58,7 @@ object Jefe extends ConfigApplication {
           scribe.error(s"Command '$command' failed!")
         }
       }
+      case Some(_) => println(s"No jefe.json file found at ${root.getAbsolutePath}")
       case _ => println(
         """Usage: jefe <command> [additional args]*
           | Commands:
@@ -113,7 +114,6 @@ object Jefe extends ConfigApplication {
 
       Server.start()
     }
-    CommandSupport.init()
 
     true
   }
