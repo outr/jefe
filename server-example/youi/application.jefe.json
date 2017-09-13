@@ -10,7 +10,9 @@
           "darkfrog.youi.io"
         ]
       },
-      "outbound": "http://localhost:8889"
+      "outbound": {
+        "url": "http://localhost:8889"
+      }
     }
   ],
   "applications": [

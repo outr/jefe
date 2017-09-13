@@ -9,4 +9,9 @@ object Server extends io.youi.server.Server {
     val success = Jefe.run(Jefe.localize(command))
     RemoteResponse(Nil, success)
   }
+  handler.matcher(all).handle { connection =>
+    if (connection.response.content.isEmpty) {
+      Jefe.access.warn(s"No content returned for ${connection.request.url}")
+    }
+  }
 }

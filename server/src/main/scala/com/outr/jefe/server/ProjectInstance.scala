@@ -7,6 +7,7 @@ import com.outr.jefe.runner.Repositories
 import com.outr.jefe.server.config._
 import io.youi.http.{HttpConnection, ProxyHandler}
 import io.youi.net.URL
+import io.youi.server.KeyStore
 import io.youi.server.handler.HttpHandler
 import org.powerscala.util.NetUtil
 
@@ -108,22 +109,25 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
   }
   private val proxies: List[HttpHandler] = configuration.proxies.flatMap { c =>
     if (c.enabled) {
-      Some(Server.handler.proxy(new ProxyHandler {
-        private val outbound = URL(c.outbound)
-
+      val proxyHandler = new ProxyHandler {
         override def proxy(connection: HttpConnection): Option[URL] = {
+          val outbound = URL(c.outbound.url)
+          Some(outbound.withPath(connection.request.url.path.toString()))
+        }
+
+        override def keyStore: Option[KeyStore] = c.outbound.keyStore
+      }
+
+      Some(new HttpHandler {
+        override def handle(connection: HttpConnection): Unit = {
           val url = connection.request.url
           if (c.inbound.domains.exists(url.host.matches) && c.inbound.port == url.port) {
-            val out = outbound.withPath(url.path.toString())
-            Jefe.access.info(s"Proxying for ${directory.getPath} - From: $url, To: $out")
-            Some(out)
-          } else {
-            None
+            connection.proxySupport = proxyHandler
           }
         }
-      }))
+      })
     } else {
-        None
+      None
     }
   }
 

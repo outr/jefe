@@ -22,18 +22,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Jefe extends ConfigApplication {
   val password: Var[String] = Var("")
 
-  lazy val access: Logger = {
-    val logger = new Logger(parentName = None)
-    val logPath = Config("log.access.path").as[Option[String]].map(new File(_)).getOrElse(new File("logs/access"))
-    logger.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", logPath)))
-    logger
-  }
-
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
   private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
 
   val configuration: Var[MainConfiguration] = Var(MainConfiguration())
   val root: Var[File] = Var(new File("."))
+
+  lazy val access: Logger = {
+    val logger = new Logger(parentName = None)
+    val logPath = Config("log.access.path").as[Option[String]].map(new File(_)).getOrElse(new File(root(), "logs/access"))
+    logger.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", logPath)))
+    logger
+  }
 
   addLocal("start", start)
   addRemote("stop", stop)
@@ -46,10 +46,7 @@ object Jefe extends ConfigApplication {
     remoteCommands += command.toLowerCase -> action
   }
 
-  override def main(args: Array[String]): Unit = {
-    scribe.info(s"Args (${args.length}): ${args.mkString(", ")}")
-    start(args)
-  }
+  override def main(args: Array[String]): Unit = start(args)
 
   override protected def run(): Unit = {
     root := new File(Config("path").as[Option[String]].getOrElse("."))
