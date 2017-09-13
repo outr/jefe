@@ -12,4 +12,8 @@ case class ApplicationConfiguration(`type`: String,
                                     args: Option[List[String]],
                                     vmArgs: Option[List[String]],
                                     ivyLocal: Option[Boolean],
-                                    mavenRepositories: Option[Map[String, String]])
+                                    mavenRepositories: Option[Map[String, String]],
+                                    host: Option[String],
+                                    port: Option[Int],
+                                    jar: Option[String],
+                                    war: Option[String])

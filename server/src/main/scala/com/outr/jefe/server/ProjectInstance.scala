@@ -4,7 +4,7 @@ import java.io.File
 
 import com.outr.jefe.repo._
 import com.outr.jefe.runner.Repositories
-import com.outr.jefe.server.config.{ApplicationConfig, DependencyAppConfig}
+import com.outr.jefe.server.config._
 import io.youi.http.{HttpConnection, ProxyHandler}
 import io.youi.net.URL
 import io.youi.server.handler.HttpHandler
@@ -38,6 +38,10 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
     def artifact = getOrError("artifact", c.artifact)
     def version = getOrError("version", c.version)
     def mainClass = getOrError("mainClass", c.mainClass)
+    def host = getOrError("host", c.host)
+    def port = getOrError("port", c.port)
+    def jar = getOrError("jar", c.jar)
+    def war = getOrError("war", c.war)
     val scala = c.scala.getOrElse(true)
     val scalaVersion = if (scala) Some(c.scalaVersion.getOrElse(CurrentScalaVersion)) else None
     val baseDirectory = c.basePath.map(p => new File(directory, p)).getOrElse(directory)
@@ -77,7 +81,28 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
         repositories = repositories,
         scalaVersion = scalaVersion
       )
-      // TODO: support static app, jar app, and war app
+      case "static" => new StaticAppConfig(
+        enabled = enabled,
+        host = host,
+        port = port,
+        directory = baseDirectory
+      )
+      case "jar" => new JARAppConfig(
+        enabled = enabled,
+        jar = new File(baseDirectory, jar),
+        mainClass = mainClass,
+        args = args,
+        jmxPort = jmxPort,
+        vmArgs = vmArgs ::: additionalArgs
+      )
+      case "war" => new WARAppConfig(
+        enabled = enabled,
+        war = new File(baseDirectory, war),
+        port = port,
+        jmxPort = jmxPort,
+        vmArgs = vmArgs ::: additionalArgs,
+        repositories = repositories
+      )
       case t => throw new UnsupportedOperationException(s"Unsupported application type: '$t'.")
     }
   }
