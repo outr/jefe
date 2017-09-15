@@ -1,7 +1,14 @@
 {
   "host": "192.168.1.26",
-  "port": 8080,
+  "port": 8880,
+  "ssl": {
+    "keystore": "/home/mhicks/projects/clients/zooxoos/library/keystore/armadillo/zooxoos.com.jks",
+    "host": "192.168.1.26",
+    "port": 8888,
+    "password": "zooxoos"
+  },
   "paths": [
+    "simple_proxy",
     "youi"
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "proxies": [
+    {
+      "enabled": true,
+      "inbound": {
+        "port": 8888,
+        "domains": [
+          "darkfrog.youi.io"
+        ]
+      },
+      "outbound": {
+        "url": "http://localhost:8080"
+      }
+    }
+  ],
+  "applications": []
+}
