@@ -2,7 +2,7 @@ name := "jefe"
 organization in ThisBuild := "com.outr"
 version in ThisBuild := "1.1.0"
 scalaVersion in ThisBuild := "2.12.3"
-crossScalaVersions in ThisBuild := List("2.12.3", "2.11.11")
+crossScalaVersions in ThisBuild := List("2.12.3")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
