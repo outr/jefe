@@ -59,7 +59,7 @@ object Jefe extends ConfigApplication {
     root := new File(Config("path").as[Option[String]].getOrElse("."))
     val configFound = updateConfig()
     Config("arg1").as[Option[String]] match {
-      case Some(command) if configFound =>{
+      case Some(command) if configFound | command != "start" => {
         if (run(LocalCommand(command, configuration, root))) {
           scribe.info(s"Command '$command' completed successfully!")
         } else {
@@ -100,10 +100,12 @@ object Jefe extends ConfigApplication {
     }
   }
 
-  def run(command: RemoteCommand): RemoteResponse = {
+  def run(command: RemoteCommand): RemoteResponse = if (command.password.getOrElse("") == password()) {
     val local = LocalCommand(command.value, Config.as[MainConfiguration], new File(command.base))
     val action = remoteCommands(local.value)
     action(local)
+  } else {
+    RemoteResponse(List("Invalid or no password specified!"), success = false)
   }
 
   /**
@@ -113,6 +115,7 @@ object Jefe extends ConfigApplication {
     val host = command.configuration.host.getOrElse("localhost")
     val port = command.configuration.port.getOrElse(8080)
     val url = URL(s"http://$host:$port/jefe/remote")
+    scribe.info(s"Connecting to $url...")
     val client = new HttpClient
     val future = client.restful[RemoteCommand, RemoteResponse](url, command.toRemote, errorHandler = new ErrorHandler[RemoteResponse] {
       override def apply(request: HttpRequest, response: HttpResponse, throwable: Option[Throwable]): RemoteResponse = {
@@ -204,6 +207,9 @@ object Jefe extends ConfigApplication {
         false
       }
     } else {
+      if (!Server.isRunning) {
+        configuration := Config.as[MainConfiguration]
+      }
       false
     }
   }
