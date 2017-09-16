@@ -6,8 +6,7 @@ import io.circe.generic.auto._
 
 object Server extends io.youi.server.Server {
   handler.matcher(path.exact("/jefe/remote")).priority(Priority.High).restful[RemoteCommand, RemoteResponse] { command =>
-    val success = Jefe.run(Jefe.localize(command))
-    RemoteResponse(Nil, success)
+    Jefe.run(command)
   }
   handler.matcher(all).handle { connection =>
     if (connection.response.content.isEmpty) {

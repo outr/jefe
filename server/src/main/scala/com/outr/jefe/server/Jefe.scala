@@ -2,12 +2,15 @@ package com.outr.jefe.server
 
 import java.io.File
 
+import com.outr.jefe.server.config.ProcessApplicationConfig
 import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.youi.client.{ErrorHandler, HttpClient}
 import io.youi.http.{HttpRequest, HttpResponse}
 import io.youi.net.URL
+import org.powerscala.StringUtil
+import org.powerscala.concurrent.Time
 import org.powerscala.io._
 import profig._
 import reactify.Var
@@ -23,8 +26,9 @@ object Jefe extends ConfigApplication {
   val password: Var[String] = Var("")
 
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
-  private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
+  private var remoteCommands: Map[String, LocalCommand => RemoteResponse] = Map.empty
 
+  val started: Long = System.currentTimeMillis()
   val lastModified: Var[Long] = Var(0L)
   val configuration: Var[MainConfiguration] = Var(MainConfiguration())
   val root: Var[File] = Var(new File("."))
@@ -38,13 +42,14 @@ object Jefe extends ConfigApplication {
 
   addLocal("start", start)
   addRemote("update", update)
+  addRemote("status", status)
   addRemote("stop", stop)
 
   def addLocal(command: String, action: LocalCommand => Boolean): Unit = synchronized {
     localCommands += command.toLowerCase -> action
   }
 
-  def addRemote(command: String, action: LocalCommand => Boolean): Unit = synchronized {
+  def addRemote(command: String, action: LocalCommand => RemoteResponse): Unit = synchronized {
     remoteCommands += command.toLowerCase -> action
   }
 
@@ -84,23 +89,21 @@ object Jefe extends ConfigApplication {
   def run(command: LocalCommand): Boolean = localCommands.get(command.value) match {
     case Some(action) => action(command)
     case None => if (remoteCommands.contains(command.value)) {
-      if (Server.isRunning) {
-        val action = remoteCommands(command.value)
-        action(command)
-      } else {
-        val response = Await.result(remote(command), 10.minutes)
-        response.messages.foreach { message =>
-          scribe.info(message)
-        }
-        response.success
+      assert(!Server.isRunning, "Server is not running.")
+      val response = Await.result(remote(command), 10.minutes)
+      response.messages.foreach { message =>
+        scribe.info(message)
       }
+      response.success
     } else {
       throw new RuntimeException(s"No command '${command.value}` supported.")
     }
   }
 
-  def localize(command: RemoteCommand): LocalCommand = {
-    LocalCommand(command.value, Config.as[MainConfiguration], new File(command.base))
+  def run(command: RemoteCommand): RemoteResponse = {
+    val local = LocalCommand(command.value, Config.as[MainConfiguration], new File(command.base))
+    val action = remoteCommands(local.value)
+    action(local)
   }
 
   /**
@@ -140,24 +143,53 @@ object Jefe extends ConfigApplication {
     true
   }
 
-  def update(command: LocalCommand): Boolean = if (Server.isRunning) {
-    update(force = false)
-
-    true
+  def status(command: LocalCommand): RemoteResponse = if (Server.isRunning) {
+    var heapCommitted = 0L
+    var heapUsed = 0L
+    var offheapCommitted = 0L
+    var offheapUsed = 0L
+    val entries = ProjectManager.instances.flatMap { instance =>
+      instance.applications.collect {
+        case app: ProcessApplicationConfig => app.processMonitor.map(_.stats()).map { processStats =>
+          heapCommitted += processStats.heapUsage.committed
+          heapUsed += processStats.heapUsage.used
+          offheapCommitted += processStats.nonHeapUsage.committed
+          offheapUsed += processStats.nonHeapUsage.used
+          List(s"${instance.directory.getName} (PID: ${app.pid.getOrElse(-1)})") ::: processStats.toList.map(l => s"\t$l")
+        }
+      }.flatten
+    }.flatten
+    val messages = entries ::: List(
+         "",
+         s"Total Heap Committed: ${StringUtil.humanReadableByteCount(heapCommitted)}",
+         s"Total Heap Used: ${StringUtil.humanReadableByteCount(heapUsed)}",
+         s"Total Off-Heap Committed: ${StringUtil.humanReadableByteCount(offheapCommitted)}",
+         s"Total Off-Heap Used: ${StringUtil.humanReadableByteCount(offheapUsed)}",
+         s"Uptime: ${Time.elapsed(System.currentTimeMillis() - started).toString()}"
+    )
+    RemoteResponse(messages, success = true)
   } else {
-    false
+    RemoteResponse(List("Server is not running."), success = false)
   }
 
-  def stop(command: LocalCommand): Boolean = if (Server.isRunning) {
+  def update(command: LocalCommand): RemoteResponse = if (Server.isRunning) {
+    update(force = false)
+
+    RemoteResponse(Nil, success = true)
+  } else {
+    RemoteResponse(List("Server is not running."), success = false)
+  }
+
+  def stop(command: LocalCommand): RemoteResponse = if (Server.isRunning) {
     scribe.info("Received command to shutdown server. Shutting down in 5 seconds...")
     Future {
       Thread.sleep(5000L)
       scribe.info("Shutting down server.")
       Server.stop()
     }
-    true
+    RemoteResponse(List("Server will shutdown in 5 seconds."), success = true)
   } else {
-    false
+    RemoteResponse(List("Server not running."), success = false)
   }
 
   def updateConfig(): Boolean = {

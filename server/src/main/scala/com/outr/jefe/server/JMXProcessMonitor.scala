@@ -55,13 +55,15 @@ class JMXProcessMonitor(port: Int) {
                           nonHeapUsage: MemoryUsage,
                           threading: Threading,
                           classLoading: ClassLoading) {
-    override def toString: String =
-      s"""OS: $os
-          |\tHeap Usage: $heapUsage
-          |\tNon Heap Usage: $nonHeapUsage
-          |\tThreading: $threading
-          |\tClass Loading: $classLoading\n
-     """.stripMargin
+    def toList: List[String] = List(
+      s"OS: $os",
+      s"Heap Usage: $heapUsage",
+      s"Non Heap Usage: $nonHeapUsage",
+      s"Threading: $threading",
+      s"Class Loading: $classLoading"
+    )
+
+    override def toString: String = toList.mkString("\n")
   }
 
   case class OperatingSystem(startTime: Long, upTime: Long, loadAverage: Double, load: Double, time: Long, systemLoad: Double) {

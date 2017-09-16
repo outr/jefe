@@ -31,7 +31,7 @@ object ProjectInstance {
 }
 
 class ProjectInstance(val directory: File, val configuration: ProjectConfiguration) {
-  private val applications: List[ApplicationConfig] = configuration.applications.map { c =>
+  val applications: List[ApplicationConfig] = configuration.applications.map { c =>
     def getOrError[T](name: String, option: Option[T]): T = option.getOrElse(throw new RuntimeException(s"No '$name' provided in configuration for ${c.`type`} for ${directory.getName}."))
 
     val enabled = c.enabled.getOrElse(true)
