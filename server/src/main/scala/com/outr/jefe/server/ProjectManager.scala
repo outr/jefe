@@ -28,6 +28,16 @@ object ProjectManager {
     }
   }
 
+  def stopAllExcept(paths: Set[String]): Unit = {
+    scribe.info(s"Stopping all (${instances.keys.mkString(", ")}) except (${paths.mkString(", ")})")
+    instances.foreach {
+      case (path, instance) => if (!paths.contains(path)) {
+        instances -= path
+        instance.stop()
+      }
+    }
+  }
+
   def stop(): Unit = synchronized {
     instances.values.foreach { instance =>
       instance.stop()

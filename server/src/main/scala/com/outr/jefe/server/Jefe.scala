@@ -25,6 +25,7 @@ object Jefe extends ConfigApplication {
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
   private var remoteCommands: Map[String, LocalCommand => Boolean] = Map.empty
 
+  val lastModified: Var[Long] = Var(0L)
   val configuration: Var[MainConfiguration] = Var(MainConfiguration())
   val root: Var[File] = Var(new File("."))
 
@@ -36,6 +37,7 @@ object Jefe extends ConfigApplication {
   }
 
   addLocal("start", start)
+  addRemote("update", update)
   addRemote("stop", stop)
 
   def addLocal(command: String, action: LocalCommand => Boolean): Unit = synchronized {
@@ -50,11 +52,9 @@ object Jefe extends ConfigApplication {
 
   override protected def run(): Unit = {
     root := new File(Config("path").as[Option[String]].getOrElse("."))
-    val jefeConfig = new File(root, "jefe.json")
-    if (jefeConfig.exists()) Config.merge(jefeConfig)
-    configuration := Config.as[MainConfiguration]
+    val configFound = updateConfig()
     Config("arg1").as[Option[String]] match {
-      case Some(command) if jefeConfig.exists() =>{
+      case Some(command) if configFound =>{
         if (run(LocalCommand(command, configuration, root))) {
           scribe.info(s"Command '$command' completed successfully!")
         } else {
@@ -66,6 +66,7 @@ object Jefe extends ConfigApplication {
         """Usage: jefe <command> [additional args]*
           | Commands:
           |   start - starts the server instance
+          |   update - updates the server instance
           |   stop - stops the server instance
           |   status - the current server status
           | Additional Arguments:
@@ -124,7 +125,7 @@ object Jefe extends ConfigApplication {
 
   def start(command: LocalCommand): Boolean = {
     val c = command.configuration
-    update(command.configuration, command.baseDirectory)
+    update(force = true)
     if (c.startServer.getOrElse(true)) {
       Server.config.clearListeners()
       Server.config.addHttpListener(c.host.getOrElse("0.0.0.0"), c.port.getOrElse(8080))
@@ -139,6 +140,14 @@ object Jefe extends ConfigApplication {
     true
   }
 
+  def update(command: LocalCommand): Boolean = if (Server.isRunning) {
+    update(force = false)
+
+    true
+  } else {
+    false
+  }
+
   def stop(command: LocalCommand): Boolean = if (Server.isRunning) {
     scribe.info("Received command to shutdown server. Shutting down in 5 seconds...")
     Future {
@@ -151,9 +160,25 @@ object Jefe extends ConfigApplication {
     false
   }
 
-  def update(configuration: MainConfiguration, baseDirectory: File): Boolean = {
+  def updateConfig(): Boolean = {
+    val jefeConfig = new File(root, "jefe.json")
+    if (jefeConfig.exists()) {
+      if (lastModified() != jefeConfig.lastModified()) {
+        Config.merge(jefeConfig)
+        configuration := Config.as[MainConfiguration]
+        lastModified := jefeConfig.lastModified()
+        true
+      } else {
+        false
+      }
+    } else {
+      false
+    }
+  }
+
+  private def update(force: Boolean): Boolean = if (updateConfig() || force) {
     configuration.paths.foreach { path =>
-      val directory = new File(baseDirectory, path)
+      val directory = new File(root, path)
       var jsonOption: Option[Json] = None
       val configFiles = directory.listFiles().filter(_.getName.endsWith(".jefe.json"))
       configFiles.foreach { f =>
@@ -184,6 +209,9 @@ object Jefe extends ConfigApplication {
         }
       }
     }
+    ProjectManager.stopAllExcept(configuration.paths.map(new File(root, _).getCanonicalPath).toSet)   // Stop removed projects
     true
+  } else {
+    false
   }
 }
