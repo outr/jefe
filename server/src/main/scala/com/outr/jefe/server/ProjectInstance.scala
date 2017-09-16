@@ -107,24 +107,19 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
       case t => throw new UnsupportedOperationException(s"Unsupported application type: '$t'.")
     }
   }
-  private val proxies: List[HttpHandler] = configuration.proxies.flatMap { c =>
+  private val proxies: List[ProxyHandler] = configuration.proxies.flatMap { c =>
     if (c.enabled) {
-      val proxyHandler = new ProxyHandler {
-        override def proxy(connection: HttpConnection): Option[URL] = {
+      Some(new ProxyHandler {
+        override def matches(url: URL): Boolean = {
+          c.inbound.domains.exists(url.host.matches) && c.inbound.port == url.port
+        }
+
+        override def proxy(url: URL): URL = {
           val outbound = URL(c.outbound.url)
-          Some(outbound.withPath(connection.request.url.path.toString()))
+          outbound.withPath(url.path.toString())
         }
 
         override def keyStore: Option[KeyStore] = c.outbound.keyStore
-      }
-
-      Some(new HttpHandler {
-        override def handle(connection: HttpConnection): Unit = {
-          val url = connection.request.url
-          if (c.inbound.domains.exists(url.host.matches) && c.inbound.port == url.port) {
-            connection.proxySupport = proxyHandler
-          }
-        }
       })
     } else {
       None
@@ -134,11 +129,11 @@ class ProjectInstance(val directory: File, val configuration: ProjectConfigurati
   def start(): Unit = {
     scribe.info(s"Starting ${directory.getName}...")
     applications.foreach(_.start())
-    proxies.foreach(proxy => Server.handlers += proxy)
+    proxies.foreach(proxy => Server.proxies += proxy)
   }
   def stop(): Unit = {
     scribe.info(s"Stopping ${directory.getName}...")
-    proxies.foreach(proxy => Server.handlers -= proxy)
+    proxies.foreach(proxy => Server.proxies -= proxy)
     applications.foreach(_.stop())
   }
 }
