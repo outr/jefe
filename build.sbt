@@ -1,6 +1,6 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.2.1"
+version in ThisBuild := "1.2.2-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.3"
 crossScalaVersions in ThisBuild := List("2.12.3")
 resolvers in ThisBuild ++= Seq(
@@ -21,7 +21,7 @@ val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.5"
 
 val reactifyVersion = "2.2.0"
-val youiVersion = "0.6.6"
+val youiVersion = "0.7.0"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)
