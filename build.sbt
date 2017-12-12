@@ -87,7 +87,6 @@ lazy val server = project.in(file("server"))
     libraryDependencies ++= Seq(
       "io.youi" %% "youi-server-undertow" % youiVersion,
       "io.youi" %% "youi-client" % youiVersion,
-      "org.powerscala" %% "powerscala-command" % powerScalaVersion,
       "org.powerscala" %% "powerscala-concurrent" % powerScalaVersion
     ),
     libraryDependencies ++= Seq(
