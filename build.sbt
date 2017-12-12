@@ -1,8 +1,8 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.2.2-SNAPSHOT"
-scalaVersion in ThisBuild := "2.12.3"
-crossScalaVersions in ThisBuild := List("2.12.3")
+version in ThisBuild := "1.2.2"
+scalaVersion in ThisBuild := "2.12.4"
+crossScalaVersions in ThisBuild := List("2.12.4")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -11,8 +11,8 @@ resolvers in ThisBuild ++= Seq(
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
 cancelable in Global := true
 
-val asmVersion = "5.2"
-val coursierVersion = "1.0.0-RC11"
+val asmVersion = "6.0"
+val coursierVersion = "1.0.0-RC14"
 val circeVersion = "0.8.0"
 val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
@@ -21,7 +21,7 @@ val scalaXMLVersion = "1.0.6"
 val scribeVersion = "1.4.5"
 
 val reactifyVersion = "2.2.0"
-val youiVersion = "0.7.0"
+val youiVersion = "0.9.0-M2"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)
