@@ -1,8 +1,8 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.2.2"
-scalaVersion in ThisBuild := "2.12.4"
-crossScalaVersions in ThisBuild := List("2.12.4")
+version in ThisBuild := "1.2.3"
+scalaVersion in ThisBuild := "2.12.5"
+crossScalaVersions in ThisBuild := List("2.12.5")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -11,17 +11,33 @@ resolvers in ThisBuild ++= Seq(
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-feature", "-encoding", "utf8")
 cancelable in Global := true
 
-val asmVersion = "6.0"
-val coursierVersion = "1.0.0-RC14"
-val circeVersion = "0.8.0"
+publishTo in ThisBuild := sonatypePublishTo.value
+sonatypeProfileName in ThisBuild := "com.outr"
+publishMavenStyle in ThisBuild := true
+licenses in ThisBuild := Seq("MIT" -> url("https://github.com/outr/jefe/blob/master/LICENSE"))
+sonatypeProjectHosting in ThisBuild := Some(xerial.sbt.Sonatype.GitHubHosting("outr", "jefe", "matt@outr.com"))
+homepage in ThisBuild := Some(url("https://github.com/outr/jefe"))
+scmInfo in ThisBuild := Some(
+  ScmInfo(
+    url("https://github.com/outr/jefe"),
+    "scm:git@github.com:outr/jefe.git"
+  )
+)
+developers in ThisBuild := List(
+  Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
+)
+
+val asmVersion = "6.1.1"
+val coursierVersion = "1.0.3"
+val circeVersion = "0.9.2"
 val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
-val proguardVersion = "5.3.3"
-val scalaXMLVersion = "1.0.6"
-val scribeVersion = "1.4.5"
+val proguardVersion = "6.0.1"
+val scalaXMLVersion = "1.1.0"
+val scribeVersion = "2.3.1"
 
-val reactifyVersion = "2.2.0"
-val youiVersion = "0.9.0-M2"
+val reactifyVersion = "2.3.0"
+val youiVersion = "0.9.0-M7"
 
 lazy val root = project.in(file("."))
   .aggregate(launch, manager, runner, optimizer, pack, server, example)

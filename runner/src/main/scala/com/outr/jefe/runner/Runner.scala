@@ -6,6 +6,7 @@ import java.io.File
 import com.outr.jefe.launch.{Launcher, LauncherInstance, LauncherStatus}
 import com.outr.jefe.repo._
 import scribe.Logging
+import perfolation._
 
 class Arguments(args: Array[String]) {
   private var entries = args.toList
@@ -72,6 +73,7 @@ object Runner extends Logging {
     val manager = DependencyManager(configuration.repositories.list, monitor)
     logger.info("Resolving dependencies...")
     val files = manager.resolve(configuration.dependency)
+    logger.info(p"Depending on (${files.length} dependencies): ${files.map(_.getName).mkString(", ")}")
     logger.info("Creating launcher...")
     val launcher = new Launcher(configuration.mainClass, files, configuration.args)
     logger.info("Creating launcher instance...")

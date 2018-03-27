@@ -25,7 +25,7 @@ class DependencyAppConfig(val enabled: Boolean,
   override def start(): Unit = synchronized {
     stop()
 
-    val dependency = scalaVersion match {
+    val dependency: VersionedDependency = scalaVersion match {
       case Some(v) => group % s"${artifact}_$v" % version
       case None => group % artifact % version
     }

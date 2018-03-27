@@ -14,7 +14,6 @@ import org.powerscala.concurrent.Time
 import org.powerscala.io._
 import profig._
 import reactify.Var
-import scribe.formatter.Formatter
 import scribe._
 import scribe.writer.FileWriter
 
@@ -22,7 +21,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Jefe extends ConfigApplication {
+object Jefe {
   val password: Var[String] = Var("")
 
   private var localCommands: Map[String, LocalCommand => Boolean] = Map.empty
@@ -35,9 +34,8 @@ object Jefe extends ConfigApplication {
 
   lazy val access: Logger = {
     val logger = new Logger(parentName = None)
-    val logPath = Config("log.access.path").as[Option[String]].map(new File(_)).getOrElse(new File(root(), "logs/access"))
-    logger.addHandler(LogHandler(Level.Info, Formatter.default, FileWriter.daily("access", logPath)))
-    logger
+    val logPath = Profig("log.access.path").as[Option[String]].map(new File(_)).getOrElse(new File(root(), "logs/access"))
+    logger.withHandler(writer = FileWriter.daily("access", directory = logPath.toPath), minimumLevel = Some(Level.Info))
   }
 
   addLocal("start", start)
@@ -53,12 +51,13 @@ object Jefe extends ConfigApplication {
     remoteCommands += command.toLowerCase -> action
   }
 
-  override def main(args: Array[String]): Unit = start(args)
+  def main(args: Array[String]): Unit = {
+    Profig.loadDefaults()
+    Profig.merge(args)
 
-  override protected def run(): Unit = {
-    root := new File(Config("path").as[Option[String]].getOrElse("."))
+    root := new File(Profig("path").as[Option[String]].getOrElse("."))
     val configFound = updateConfig()
-    Config("arg1").as[Option[String]] match {
+    Profig("arg1").as[Option[String]] match {
       case Some(command) if configFound | command != "start" => {
         if (run(LocalCommand(command, configuration, root))) {
           scribe.info(s"Command '$command' completed successfully!")
@@ -101,7 +100,7 @@ object Jefe extends ConfigApplication {
   }
 
   def run(command: RemoteCommand): RemoteResponse = if (command.password.getOrElse("") == password()) {
-    val local = LocalCommand(command.value, Config.as[MainConfiguration], new File(command.base))
+    val local = LocalCommand(command.value, Profig.as[MainConfiguration], new File(command.base))
     val action = remoteCommands(local.value)
     action(local)
   } else {
@@ -119,7 +118,7 @@ object Jefe extends ConfigApplication {
     val client = new HttpClient
     val future = client.restful[RemoteCommand, RemoteResponse](url, command.toRemote, errorHandler = new ErrorHandler[RemoteResponse] {
       override def apply(request: HttpRequest, response: HttpResponse, throwable: Option[Throwable]): RemoteResponse = {
-        scribe.error(response.content)
+        scribe.error(response.content.toString)
         throw throwable.getOrElse(new RuntimeException("Error while processing response!"))
       }
     })
@@ -199,8 +198,8 @@ object Jefe extends ConfigApplication {
     val jefeConfig = new File(root, "jefe.json")
     if (jefeConfig.exists()) {
       if (lastModified() != jefeConfig.lastModified()) {
-        Config.merge(jefeConfig)
-        configuration := Config.as[MainConfiguration]
+        Profig.merge(jefeConfig, ConfigType.Json)
+        configuration := Profig.as[MainConfiguration]
         lastModified := jefeConfig.lastModified()
         true
       } else {
@@ -208,7 +207,7 @@ object Jefe extends ConfigApplication {
       }
     } else {
       if (!Server.isRunning) {
-        configuration := Config.as[MainConfiguration]
+        configuration := Profig.as[MainConfiguration]
       }
       false
     }
