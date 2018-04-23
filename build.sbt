@@ -29,6 +29,7 @@ developers in ThisBuild := List(
 
 val asmVersion = "6.1.1"
 val coursierVersion = "1.0.3"
+val libraryManagementVersion = "1.1.4"
 val circeVersion = "0.9.3"
 val packrVersion = "2.1"
 val powerScalaVersion = "2.0.5"
@@ -60,6 +61,8 @@ lazy val manager = project.in(file("manager"))
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % coursierVersion,
       "io.get-coursier" %% "coursier-cache" % coursierVersion,
+      "org.scala-sbt" %% "librarymanagement-core" % libraryManagementVersion,
+      "org.scala-sbt" %% "librarymanagement-ivy" % libraryManagementVersion,
       "org.powerscala" %% "powerscala-core" % powerScalaVersion,
       "org.powerscala" %% "powerscala-io" % powerScalaVersion,
       "org.scala-lang.modules" %% "scala-xml" % scalaXMLVersion,

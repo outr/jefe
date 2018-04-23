@@ -10,7 +10,7 @@ object Test extends App with Logging {
 
   val dependency = "com.outr.hw" %% "hello-world" % "latest.release"
   val monitor = Monitor.Dialog
-  val manager = DependencyManager(repositories, monitor)
+  val manager = DependencyManager(repositories, monitor, useCoursier = true)
   val files = manager.resolve(dependency)
 
   val launcher = new Launcher("com.outr.hw.HelloWorld", files)

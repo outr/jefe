@@ -5,8 +5,6 @@ import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import com.outr.jefe.repo._
 
-import scala.collection.mutable.ListBuffer
-
 case class Configuration(dependency: VersionedDependency,
                          mainClass: String,
                          args: Array[String] = Array.empty,
@@ -14,7 +12,8 @@ case class Configuration(dependency: VersionedDependency,
                          workingDirectory: File = new File("."),
                          showDialogIfPossible: Boolean = true,
                          repositories: Repositories = Repositories(),
-                         newProcess: Boolean = false)
+                         newProcess: Boolean = false,
+                         useCoursier: Boolean = true)
 
 object Configuration {
   def load(file: File): Configuration = {

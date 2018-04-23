@@ -4,9 +4,8 @@ import java.io.File
 
 import com.outr.jefe.launch.ProcessLauncherInstance
 import com.outr.jefe.runner.{Configuration, Repositories, Runner}
-import com.outr.jefe.server.JMXProcessMonitor
+import com.outr.jefe.server.{JMXProcessMonitor, Jefe}
 import com.outr.jefe.repo._
-import org.powerscala.util.NetUtil
 
 class DependencyAppConfig(val enabled: Boolean,
                           val workingDirectory: File,
@@ -32,7 +31,7 @@ class DependencyAppConfig(val enabled: Boolean,
 
     scribe.info(s"Starting $dependency...")
 
-    val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true, vmArgs = vmArgs.toArray)
+    val config = Configuration(dependency, mainClass, args.toArray, workingDirectory = workingDirectory, newProcess = true, vmArgs = vmArgs.toArray, useCoursier = Jefe.configuration().useCoursier)
     val li = Runner.run(config).asInstanceOf[ProcessLauncherInstance]
     instance = Some(li)
     processMonitor = Some(new JMXProcessMonitor(jmxPort))

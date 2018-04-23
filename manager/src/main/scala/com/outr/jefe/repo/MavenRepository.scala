@@ -5,11 +5,15 @@ import java.net.URL
 
 import org.powerscala.Version
 import org.powerscala.io._
+import sbt.librarymanagement.Resolver
 
 import scala.xml.XML
+import sbt.librarymanagement.{MavenRepository => SBTMavenRepository}
+import coursier.{MavenRepository => CoursierMavenRepository}
 
 case class MavenRepository(name: String, baseURL: String) extends Repository {
-  @transient lazy val internal = coursier.MavenRepository(baseURL)
+  @transient lazy val sbt: Resolver = SBTMavenRepository(name, baseURL)
+  @transient override lazy val coursier: CoursierMavenRepository = CoursierMavenRepository(baseURL)
 
   def info(dependency: Dependency): Option[DependencyInfo] = {
     val url = s"$baseURL/${dependency.group.replace('.', '/')}/${dependency.name}"

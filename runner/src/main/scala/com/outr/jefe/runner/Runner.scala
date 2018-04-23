@@ -35,7 +35,7 @@ object Runner extends Logging {
       if (configFile.exists()) {
         Option(Configuration.load(configFile))
       } else {
-        fail("Usage: java -jar runner.jar groupId=com.company artifactId=project (version=1.0.0|latest) (scala=true|false) mainClass=com.company.MyClass arguments")
+        fail("Usage: java -jar runner.jar groupId=com.company artifactId=project (version=1.0.0|latest) (scala=true|false) (useCoursier=true|false) mainClass=com.company.MyClass arguments")
         None
       }
     } else {
@@ -70,7 +70,7 @@ object Runner extends Logging {
       Monitor.Dialog
     }
     logger.info("Initializing dependency manager...")
-    val manager = DependencyManager(configuration.repositories.list, monitor)
+    val manager = DependencyManager(configuration.repositories.list, monitor, configuration.useCoursier)
     logger.info("Resolving dependencies...")
     val files = manager.resolve(configuration.dependency)
     logger.info(p"Depending on (${files.length} dependencies): ${files.map(_.getName).mkString(", ")}")

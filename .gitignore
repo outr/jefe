@@ -1,7 +1,10 @@
 .idea/
+.cache/
 servertest/
 target/
 output/
+server-example/jefe-server.jar
+server-example/nohup.out
 *-fastopt.js
 *-fastopt.js.map
 *.log

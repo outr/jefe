@@ -5,4 +5,5 @@ case class MainConfiguration(host: Option[String] = None,
                              startServer: Option[Boolean] = None,
                              ssl: Option[SSLConfiguration] = None,
                              password: Option[String] = None,
-                             paths: List[String] = Nil)
+                             paths: List[String] = Nil,
+                             useCoursier: Boolean = true)

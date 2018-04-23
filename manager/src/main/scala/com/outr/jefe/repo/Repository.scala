@@ -1,9 +1,13 @@
 package com.outr.jefe.repo
 
+import sbt.librarymanagement.Resolver
+import coursier.{Repository => CoursierRepository}
+
 trait Repository {
   def info(dependency: Dependency): Option[DependencyInfo]
 
-  def internal: coursier.Repository
+  def sbt: Resolver
+  def coursier: CoursierRepository
 }
 
 object Repository {

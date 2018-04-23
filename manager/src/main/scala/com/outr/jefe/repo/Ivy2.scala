@@ -2,13 +2,17 @@ package com.outr.jefe.repo
 
 import java.io.File
 
+import coursier.Cache
+import coursier.ivy.IvyRepository
 import org.powerscala.Version
+import sbt.librarymanagement.{FileRepository, Resolver}
 
 object Ivy2 {
   object Local extends Repository {
     private val baseDirectory = new File(s"${System.getProperty("user.home")}/.ivy2/local")
 
-    val internal = coursier.Cache.ivy2Local
+    val sbt: FileRepository = Resolver.defaultLocal
+    val coursier: IvyRepository = Cache.ivy2Local
 
     override def info(dependency: Dependency): Option[DependencyInfo] = {
       val directory = new File(baseDirectory, s"${dependency.group}/${dependency.name}")
