@@ -1,6 +1,6 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.2.4-SNAPSHOT"
+version in ThisBuild := "1.2.4"
 scalaVersion in ThisBuild := "2.12.5"
 crossScalaVersions in ThisBuild := List("2.12.5")
 resolvers in ThisBuild ++= Seq(
