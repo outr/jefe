@@ -11,6 +11,17 @@ trait Launcher {
   def launch(): Launched
 }
 
+object Launcher {
+  private lazy val javaHome = System.getProperty("java.home")
+  private lazy val fileSeparator = System.getProperty("file.separator")
+  private lazy val pathSeparator = System.getProperty("path.separator")
+
+  lazy val Java: String = {
+    val extension = if (fileSeparator == "/") "" else "w.exe"
+    s"$javaHome${fileSeparator}bin${fileSeparator}java$extension"
+  }
+}
+
 class ProcessLauncher(val commands: List[String],
                       val workingDirectory: File = new File("."),
                       val environment: Map[String, String] = Map.empty) extends Launcher {
