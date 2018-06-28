@@ -1,14 +1,31 @@
 package com.outr.jefe.launch
 
-import java.io.File
+import java.io.{BufferedReader, File, InputStreamReader}
+
+import scribe.Logger
+
+import scala.concurrent.Future
+import scribe.Execution.global
 
 trait Launcher {
   def launch(): Launched
 }
 
-class ProcessLauncher(processBuilder: ProcessBuilder) extends Launcher {
+class ProcessLauncher(val commands: List[String],
+                      val workingDirectory: File = new File("."),
+                      val environment: Map[String, String] = Map.empty) extends Launcher {
+  private lazy val processBuilder = {
+    val b = new ProcessBuilder(commands: _*)
+    b.directory(workingDirectory)
+    val env = b.environment()
+    environment.foreach {
+      case (key, value) => env.put(key, value)
+    }
+    b
+  }
+
   override def launch(): Launched = try {
-    val process = processBuilder.inheritIO().start()
+    val process = processBuilder.start()
     LaunchedProcess(process)
   } catch {
     case t: Throwable => FailedProcess(t)
@@ -16,9 +33,10 @@ class ProcessLauncher(processBuilder: ProcessBuilder) extends Launcher {
 }
 
 trait Launched {
-  def status: ProcessStatus
+  private val loggerId: Long = Logger.empty.replace().id
+  def logger: Logger = Logger(loggerId)
 
-  // TODO: access input
+  def status: ProcessStatus
 
   def waitForFinished(): ProcessStatus = {
     while (status.isRunning) {
@@ -44,6 +62,20 @@ case class LaunchedProcess(process: Process) extends Launched {
   }
   lazy val runningStatus: ProcessRunningStatus = ProcessRunningStatus(processId)
   lazy val stoppedStatus: ProcessStoppedStatus = ProcessStoppedStatus(process.exitValue())
+
+  private lazy val inputReader = new BufferedReader(new InputStreamReader(process.getInputStream))
+  private lazy val errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+  Future {
+    while (process.isAlive) {
+      Option(inputReader.readLine()).foreach(logger.info(_))
+    }
+  }
+  Future {
+    while (process.isAlive) {
+      Option(errorReader.readLine()).foreach(logger.error(_))
+    }
+  }
 
   override def status: ProcessStatus = if (process.isAlive) {
     runningStatus
@@ -82,8 +114,7 @@ object Test {
   // TODO: Migrate to test
   def main(args: Array[String]): Unit = {
     scribe.info(s"Base Directory: ${new File(".").getCanonicalPath}")
-    val builder = new ProcessBuilder("./test1.sh")
-    val launcher = new ProcessLauncher(builder)
+    val launcher = new ProcessLauncher(List("./test1.sh"))
     scribe.info("Created launcher!")
     val launched = launcher.launch()
     scribe.info("Launched! Waiting for finished...")
