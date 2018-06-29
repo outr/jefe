@@ -28,6 +28,7 @@ developers in ThisBuild := List(
 )
 
 val scribeVersion = "2.5.1"
+val powerscalaVersion = "2.0.5"
 
 lazy val root = project.in(file("."))
   .aggregate(launch)
@@ -39,6 +40,7 @@ lazy val launch = project.in(file("launch"))
   .settings(
     name := "jefe-launch",
     libraryDependencies ++= Seq(
-      "com.outr" %% "scribe-slf4j" % scribeVersion
+      "com.outr" %% "scribe-slf4j" % scribeVersion,
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion
     )
   )
