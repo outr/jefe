@@ -27,8 +27,10 @@ developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
-val scribeVersion = "2.5.1"
+val coursierVersion = "1.0.3"
+val libraryManagementVersion = "1.1.4"
 val powerscalaVersion = "2.0.5"
+val scribeVersion = "2.5.1"
 
 lazy val root = project.in(file("."))
   .aggregate(launch)
@@ -36,12 +38,27 @@ lazy val root = project.in(file("."))
     publishArtifact := false
   )
 
+lazy val resolve = project.in(file("resolve"))
+  .settings(
+    name := "jefe-resolve",
+    libraryDependencies ++= Seq(
+      "io.get-coursier" %% "coursier" % coursierVersion,
+      "io.get-coursier" %% "coursier-cache" % coursierVersion,
+      "org.scala-sbt" %% "librarymanagement-core" % libraryManagementVersion,
+      "org.scala-sbt" %% "librarymanagement-ivy" % libraryManagementVersion,
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
+      "org.powerscala" %% "powerscala-io" % powerscalaVersion,
+      "com.outr" %% "scribe-slf4j" % scribeVersion
+    )
+  )
+
 lazy val launch = project.in(file("launch"))
   .settings(
     name := "jefe-launch",
     libraryDependencies ++= Seq(
-      "com.outr" %% "scribe-slf4j" % scribeVersion,
       "org.powerscala" %% "powerscala-core" % powerscalaVersion,
-      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion
+      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
+      "com.outr" %% "scribe-slf4j" % scribeVersion
     )
   )
+  .dependsOn(resolve)
