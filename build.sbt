@@ -41,6 +41,7 @@ lazy val launch = project.in(file("launch"))
     name := "jefe-launch",
     libraryDependencies ++= Seq(
       "com.outr" %% "scribe-slf4j" % scribeVersion,
-      "org.powerscala" %% "powerscala-core" % powerscalaVersion
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
+      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion
     )
   )
