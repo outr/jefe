@@ -11,6 +11,7 @@ trait Resolver {
     resolveInternal(versioned, manager)
   }
 
+  // TODO: upgrade to `Future[Either[Throwable, ResolvedArtifact]]`
   protected def resolveInternal(artifact: VersionedArtifact, manager: ArtifactManager): Vector[File]
 
   protected def updateVersion(artifact: VersionedArtifact, manager: ArtifactManager): VersionedArtifact = {

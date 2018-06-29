@@ -1,5 +1,6 @@
 package com.outr.jefe.resolve
 
+// TODO: migrate to test
 object Test {
   def main(args: Array[String]): Unit = {
     val repositories = Repositories.default

@@ -30,10 +30,11 @@ developers in ThisBuild := List(
 val coursierVersion = "1.0.3"
 val libraryManagementVersion = "1.1.4"
 val powerscalaVersion = "2.0.5"
+val reactifyVersion = "2.3.0"
 val scribeVersion = "2.5.1"
 
 lazy val root = project.in(file("."))
-  .aggregate(launch)
+  .aggregate(resolve, launch, application)
   .settings(
     publishArtifact := false
   )
@@ -61,4 +62,12 @@ lazy val launch = project.in(file("launch"))
       "com.outr" %% "scribe-slf4j" % scribeVersion
     )
   )
-  .dependsOn(resolve)
+
+lazy val application = project.in(file("application"))
+  .settings(
+    name := "jefe-application",
+    libraryDependencies ++= Seq(
+      "com.outr" %% "reactify" % reactifyVersion
+    )
+  )
+  .dependsOn(resolve, launch)
