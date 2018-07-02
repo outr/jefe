@@ -7,23 +7,26 @@ import com.outr.jefe.resolve._
 import reactify.Var
 
 object ProcessApplication {
-  def apply(commands: List[String],
+  def apply(id: String,
+            commands: List[String],
             workingDirectory: File = new File("."),
             environment: Map[String, String] = Map.empty): ProcessApplication = {
-    new ProcessApplication(new ProcessLauncher(commands, workingDirectory, environment))
+    new ProcessApplication(id, new ProcessLauncher(commands, workingDirectory, environment))
   }
 
-  def jar(jars: List[File],
+  def jar(id: String,
+          jars: List[File],
           mainClass: Option[String] = None,
           jvmArgs: List[String] = Nil,
           args: List[String] = Nil,
           jmxConfig: Option[JMXConfig] = None,
           workingDirectory: File = new File("."),
           environment: Map[String, String] = Map.empty): ProcessApplication = {
-    new ProcessApplication(new JARLauncher(jars, mainClass, jvmArgs, args, jmxConfig, workingDirectory, environment))
+    new ProcessApplication(id, new JARLauncher(jars, mainClass, jvmArgs, args, jmxConfig, workingDirectory, environment))
   }
 
-  def artifact(artifacts: List[VersionedArtifact],
+  def artifact(id: String,
+               artifacts: List[VersionedArtifact],
                repositories: Repositories = Repositories.default,
                resolver: Resolver = SBTResolver,
                additionalJARs: List[File] = Nil,
@@ -40,16 +43,18 @@ object ProcessApplication {
     } ::: additionalJARs).distinct
 
     // Create application
-    jar(jars, mainClass, jvmArgs, args, jmxConfig, workingDirectory, environment)
+    jar(id, jars, mainClass, jvmArgs, args, jmxConfig, workingDirectory, environment)
   }
 
-  def war(war: File,
+  def war(id: String,
+          war: File,
           port: Int,
           jvmArgs: List[String] = Nil,
           jmxConfig: Option[JMXConfig] = None,
           workingDirectory: File = new File("."),
           environment: Map[String, String] = Map.empty): ProcessApplication = {
     artifact(
+      id = id,
       artifacts = List("org.eclipse.jetty" % "jetty-runner" % "9.4.11.v20180605"),
       repositories = Repositories.default,
       resolver = SBTResolver,
@@ -64,7 +69,7 @@ object ProcessApplication {
   }
 }
 
-class ProcessApplication(launcher: ProcessLauncher) extends Application {
+class ProcessApplication(val id: String, launcher: ProcessLauncher) extends Application {
   val launched: Var[Option[Launched]] = Var(None)
 
   override def start(): Unit = if (!isRunning) {

@@ -32,9 +32,10 @@ val libraryManagementVersion = "1.1.4"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "2.3.0"
 val scribeVersion = "2.5.1"
+val youiVersion = "0.9.0-M16"
 
 lazy val root = project.in(file("."))
-  .aggregate(resolve, launch, application)
+  .aggregate(resolve, launch, application, server)
   .settings(
     publishArtifact := false
   )
@@ -67,7 +68,18 @@ lazy val application = project.in(file("application"))
   .settings(
     name := "jefe-application",
     libraryDependencies ++= Seq(
-      "com.outr" %% "reactify" % reactifyVersion
+      "com.outr" %% "reactify" % reactifyVersion,
+      "io.youi" %% "youi-server-undertow" % youiVersion
     )
   )
   .dependsOn(resolve, launch)
+
+lazy val server = project.in(file("server"))
+  .settings(
+    name := "jefe-server",
+    libraryDependencies ++= Seq(
+      "io.youi" %% "youi-server-undertow" % youiVersion,
+      "io.youi" %% "youi-client" % youiVersion
+    )
+  )
+  .dependsOn(application)

@@ -5,6 +5,7 @@ import com.outr.jefe.resolve._
 object Test {
   def main(args: Array[String]): Unit = {
     val app = ProcessApplication.artifact(
+      id = "youi-example",
       artifacts = List("io.youi" %% "youi-example" % "latest.release"),
       mainClass = Some("io.youi.example.ServerExampleApplication")
     )
