@@ -16,6 +16,7 @@ class ProcessLauncher(val commands: List[String],
   }
 
   override def launch(): Launched = try {
+    scribe.info(s"Launching: ${commands.mkString(" ")}")
     val process = processBuilder.start()
     LaunchedProcess(process)
   } catch {

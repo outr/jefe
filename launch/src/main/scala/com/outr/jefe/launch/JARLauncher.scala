@@ -20,6 +20,7 @@ class JARLauncher(val jars: List[File],
 object JARLauncher {
   private lazy val javaHome = System.getProperty("java.home")
   private lazy val fileSeparator = System.getProperty("file.separator")
+  private lazy val pathSeparator = System.getProperty("path.separator")
 
   lazy val Java: String = {
     val extension = if (fileSeparator == "/") "" else "w.exe"
@@ -36,7 +37,7 @@ object JARLauncher {
     jmxConfig.foreach(c => b ++= c.args)
     b ++= jvmArgs
     b += "-cp"
-    b ++= jars.map(_.getAbsolutePath)
+    b += jars.map(_.getAbsolutePath).mkString(pathSeparator)
     mainClass.foreach(b += _)
     b ++= args
     b.toList
