@@ -1,38 +1,14 @@
 package com.outr.jefe.server
 
 import com.outr.jefe.resolve._
-import com.outr.jefe.application.{Application, ProcessApplication}
+import com.outr.jefe.application.{ApplicationManager, ProcessApplication}
 import io.youi.server.Server
 import profig.Profig
-import reactify.{Val, Var}
-import reactify.instance.RecursionMode
 
 object JefeServer extends Server {
   Profig.defaults(List("--listeners.http.port", "10565"))
 
-  object applications {
-    private val _applications: Var[List[Application]] = Var(Nil, recursion = RecursionMode.None)
-
-    def all: Val[List[Application]] = _applications
-
-    def +=(application: Application): Application = synchronized {
-      this -= application
-      _applications := application :: _applications()
-      application
-    }
-
-    def -=(application: Application): Application = synchronized {
-      application.stop(force = false)
-      _applications := _applications().filterNot(_.id == application.id)
-      application
-    }
-
-    def launch(application: Application): Application = {
-      this += application
-      application.start()
-      application
-    }
-  }
+  def applications: ApplicationManager.type = ApplicationManager
 
   override def dispose(): Unit = {
     applications.all().foreach { app =>
