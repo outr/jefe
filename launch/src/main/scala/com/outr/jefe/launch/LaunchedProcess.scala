@@ -2,10 +2,12 @@ package com.outr.jefe.launch
 
 import java.io.{BufferedReader, InputStreamReader}
 
+import com.outr.jefe.launch.JMXProcessMonitor.ProcessStats
+
 import scala.concurrent.Future
 import scribe.Execution.global
 
-case class LaunchedProcess(process: Process) extends Launched {
+case class LaunchedProcess(launcher: Launcher, process: Process) extends Launched {
   lazy val processId: Int = {
     val field = process.getClass.getDeclaredFields.find(f => f.getName == "pid" || f.getName == "handle").get
     field.setAccessible(true)
@@ -32,6 +34,15 @@ case class LaunchedProcess(process: Process) extends Launched {
     runningStatus
   } else {
     stoppedStatus
+  }
+
+  override def stats(): Option[ProcessStats] = if (process.isAlive) {
+    launcher match {
+      case jar: JARLauncher => jar.jmxConfig.map(JMXProcessMonitor.stats)
+      case _ => None
+    }
+  } else {
+    None
   }
 
   override def stop(force: Boolean): Unit = if (force) {

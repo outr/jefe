@@ -6,9 +6,9 @@ import scala.collection.mutable.ListBuffer
 
 class JARLauncher(val jars: List[File],
                   val mainClass: Option[String] = None,
-                  jvmArgs: List[String] = Nil,        // TODO: support typed entries to replace String
-                  args: List[String] = Nil,           // TODO: support typed entries to replace String
-                  jmxConfig: Option[JMXConfig] = None,
+                  val jvmArgs: List[String] = Nil,        // TODO: support typed entries to replace String
+                  val args: List[String] = Nil,           // TODO: support typed entries to replace String
+                  val jmxConfig: Option[JMXConfig] = None,
                   workingDirectory: File = new File("."),
                   environment: Map[String, String] = Map.empty)
   extends ProcessLauncher(

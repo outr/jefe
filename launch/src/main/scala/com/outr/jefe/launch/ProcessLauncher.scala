@@ -18,8 +18,8 @@ class ProcessLauncher(val commands: List[String],
   override def launch(): Launched = try {
     scribe.info(s"Launching: ${commands.mkString(" ")}")
     val process = processBuilder.start()
-    LaunchedProcess(process)
+    LaunchedProcess(this, process)
   } catch {
-    case t: Throwable => FailedProcess(t)
+    case t: Throwable => FailedProcess(this, t)
   }
 }
