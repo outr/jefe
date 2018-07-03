@@ -25,4 +25,6 @@ object ApplicationManager {
     application.start()
     application
   }
+
+  def byId(id: String): Option[Application] = all().find(_.id == id)
 }
