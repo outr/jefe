@@ -1,4 +1,4 @@
-package com.outr.jefe.launch
+package com.outr.jefe.launch.jmx
 
 import org.powerscala.util.NetUtil
 

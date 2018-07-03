@@ -2,7 +2,7 @@ package com.outr.jefe.application
 
 import java.io.File
 
-import com.outr.jefe.launch.JMXConfig
+import com.outr.jefe.launch.jmx.JMXConfig
 import com.outr.jefe.resolve.{CoursierResolver, Repositories, SBTResolver, VersionedArtifact}
 import io.youi.server.{HttpServerListener, HttpsServerListener}
 

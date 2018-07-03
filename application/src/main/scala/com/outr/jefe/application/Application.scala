@@ -1,6 +1,6 @@
 package com.outr.jefe.application
 
-import com.outr.jefe.launch.JMXProcessMonitor.ProcessStats
+import com.outr.jefe.launch.jmx.ProcessStats
 
 trait Application {
   def id: String

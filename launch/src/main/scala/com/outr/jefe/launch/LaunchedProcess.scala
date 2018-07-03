@@ -2,7 +2,7 @@ package com.outr.jefe.launch
 
 import java.io.{BufferedReader, InputStreamReader}
 
-import com.outr.jefe.launch.JMXProcessMonitor.ProcessStats
+import com.outr.jefe.launch.jmx.{JMXProcessMonitor, ProcessStats}
 
 import scala.concurrent.Future
 import scribe.Execution.global

@@ -3,6 +3,7 @@ package com.outr.jefe.application
 import java.io.File
 
 import com.outr.jefe.launch._
+import com.outr.jefe.launch.jmx.{JMXConfig, ProcessStats}
 import com.outr.jefe.resolve._
 import reactify.Var
 
@@ -83,7 +84,7 @@ class ProcessApplication(val id: String, launcher: ProcessLauncher) extends Appl
     start()
   }
 
-  override def stats(): Option[JMXProcessMonitor.ProcessStats] = launched().flatMap(_.stats())
+  override def stats(): Option[ProcessStats] = launched().flatMap(_.stats())
 
   override def stop(force: Boolean): Unit = {
     launched().foreach { l =>

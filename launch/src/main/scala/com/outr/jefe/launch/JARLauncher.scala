@@ -2,6 +2,8 @@ package com.outr.jefe.launch
 
 import java.io.File
 
+import com.outr.jefe.launch.jmx.JMXConfig
+
 import scala.collection.mutable.ListBuffer
 
 class JARLauncher(val jars: List[File],

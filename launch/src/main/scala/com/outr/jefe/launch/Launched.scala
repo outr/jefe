@@ -1,6 +1,6 @@
 package com.outr.jefe.launch
 
-import com.outr.jefe.launch.JMXProcessMonitor.ProcessStats
+import com.outr.jefe.launch.jmx.ProcessStats
 import scribe.Logger
 
 trait Launched {
