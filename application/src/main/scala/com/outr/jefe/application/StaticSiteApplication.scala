@@ -2,6 +2,7 @@ package com.outr.jefe.application
 
 import java.io.File
 
+import com.outr.jefe.launch.JMXProcessMonitor
 import io.youi.server.{HttpServerListener, HttpsServerListener, Server}
 
 class StaticSiteApplication(val id: String,
@@ -20,6 +21,8 @@ class StaticSiteApplication(val id: String,
   override def isRunning: Boolean = server.isRunning
 
   override def restart(force: Boolean): Unit = server.restart()
+
+  override def stats(): Option[JMXProcessMonitor.ProcessStats] = None
 
   override def stop(force: Boolean): Unit = server.stop()
 }

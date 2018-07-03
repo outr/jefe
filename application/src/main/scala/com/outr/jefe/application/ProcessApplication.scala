@@ -2,7 +2,7 @@ package com.outr.jefe.application
 
 import java.io.File
 
-import com.outr.jefe.launch.{JARLauncher, JMXConfig, Launched, ProcessLauncher}
+import com.outr.jefe.launch._
 import com.outr.jefe.resolve._
 import reactify.Var
 
@@ -82,6 +82,8 @@ class ProcessApplication(val id: String, launcher: ProcessLauncher) extends Appl
     stop(force)
     start()
   }
+
+  override def stats(): Option[JMXProcessMonitor.ProcessStats] = launched().flatMap(_.stats())
 
   override def stop(force: Boolean): Unit = {
     launched().foreach { l =>
