@@ -2,7 +2,7 @@ package com.outr.jefe.server
 
 import com.outr.jefe.resolve._
 import com.outr.jefe.application.{ApplicationManager, ProcessApplication}
-import com.outr.jefe.server.service.{CreateApplication, RemoveApplication, StartApplication, StopApplication}
+import com.outr.jefe.server.service._
 import io.youi.http.Method
 import io.youi.server.Server
 import profig.Profig
@@ -18,7 +18,9 @@ object JefeServer extends Server {
         "application" / List(
           "create" / CreateApplication,
           "start" / StartApplication,
+          "stats" / StatsApplication,
           "stop" / StopApplication,
+          "restart" / RestartApplication,
           "remove" / RemoveApplication
         )
       )
