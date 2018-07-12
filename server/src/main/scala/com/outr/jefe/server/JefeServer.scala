@@ -47,7 +47,7 @@ object JefeServer extends Server {
     Thread.sleep(10000)
     scribe.info("Creating server...")
     val app = ProcessApplication.artifact(
-      id = "youi-exmaple",
+      id = "youi-example",
       artifacts = List("io.youi" %% "youi-example" % "latest.release"),
       mainClass = Some("io.youi.example.ServerExampleApplication")
     )

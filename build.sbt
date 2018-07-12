@@ -28,10 +28,10 @@ developers in ThisBuild := List(
 )
 
 val coursierVersion = "1.0.3"
-val libraryManagementVersion = "1.1.4"
+val libraryManagementVersion = "1.1.5"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "2.3.0"
-val scribeVersion = "2.5.1"
+val scribeVersion = "2.5.2"
 val youiVersion = "0.9.0-M16"
 
 lazy val root = project.in(file("."))
