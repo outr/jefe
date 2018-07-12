@@ -33,6 +33,7 @@ val powerscalaVersion = "2.0.5"
 val reactifyVersion = "2.3.0"
 val scribeVersion = "2.5.2"
 val youiVersion = "0.9.0-M16"
+val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
   .aggregate(resolve, launch, application, server)
@@ -50,7 +51,8 @@ lazy val resolve = project.in(file("resolve"))
       "org.scala-sbt" %% "librarymanagement-ivy" % libraryManagementVersion,
       "org.powerscala" %% "powerscala-core" % powerscalaVersion,
       "org.powerscala" %% "powerscala-io" % powerscalaVersion,
-      "com.outr" %% "scribe-slf4j" % scribeVersion
+      "com.outr" %% "scribe-slf4j" % scribeVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
 
@@ -60,7 +62,8 @@ lazy val launch = project.in(file("launch"))
     libraryDependencies ++= Seq(
       "org.powerscala" %% "powerscala-core" % powerscalaVersion,
       "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
-      "com.outr" %% "scribe-slf4j" % scribeVersion
+      "com.outr" %% "scribe-slf4j" % scribeVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
 
@@ -69,7 +72,8 @@ lazy val application = project.in(file("application"))
     name := "jefe-application",
     libraryDependencies ++= Seq(
       "com.outr" %% "reactify" % reactifyVersion,
-      "io.youi" %% "youi-server-undertow" % youiVersion
+      "io.youi" %% "youi-server-undertow" % youiVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
   .dependsOn(resolve, launch)
@@ -79,7 +83,8 @@ lazy val server = project.in(file("server"))
     name := "jefe-server",
     libraryDependencies ++= Seq(
       "io.youi" %% "youi-server-undertow" % youiVersion,
-      "io.youi" %% "youi-client" % youiVersion
+      "io.youi" %% "youi-client" % youiVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
   .dependsOn(application)
