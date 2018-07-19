@@ -2,9 +2,12 @@ package com.outr.jefe.launch
 
 import java.io.File
 
+import scribe.Logger
+
 class ProcessLauncher(val commands: List[String],
                       val workingDirectory: File = new File("."),
-                      val environment: Map[String, String] = Map.empty) extends Launcher {
+                      val environment: Map[String, String] = Map.empty,
+                      val loggerId: Long = Logger.root.id) extends Launcher {
   private lazy val processBuilder = {
     val b = new ProcessBuilder(commands: _*)
     b.directory(workingDirectory)

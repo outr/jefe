@@ -4,7 +4,7 @@ import com.outr.jefe.launch.jmx.ProcessStats
 import scribe.Logger
 
 trait Launched {
-  private val loggerId: Long = Logger.empty.replace().id
+  private val loggerId: Long = Logger.empty.withParent(launcher.loggerId).replace().id
 
   def launcher: Launcher
   def logger: Logger = Logger(loggerId)

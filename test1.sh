@@ -3,5 +3,5 @@
 echo Test Script 1
 sleep 1s
 echo Delayed...
-sleep 5s
+sleep 1s
 echo Finishing!
