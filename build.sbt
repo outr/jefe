@@ -83,6 +83,7 @@ lazy val application = project.in(file("application"))
     name := "jefe-application",
     libraryDependencies ++= Seq(
       "com.outr" %% "reactify" % reactifyVersion,
+      "io.youi" %% "youi-client" % youiVersion,
       "io.youi" %% "youi-server-undertow" % youiVersion,
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
@@ -102,8 +103,6 @@ lazy val server = project.in(file("server"))
   .settings(
     name := "jefe-server",
     libraryDependencies ++= Seq(
-      "io.youi" %% "youi-server-undertow" % youiVersion,
-      "io.youi" %% "youi-client" % youiVersion,
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )

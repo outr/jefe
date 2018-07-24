@@ -30,9 +30,7 @@ object JefeServer extends Server {
   def applications: ApplicationManager.type = ApplicationManager
 
   override def dispose(): Unit = {
-    applications.all().foreach { app =>
-      applications -= app
-    }
+    applications.dispose()
 
     super.dispose()
   }
