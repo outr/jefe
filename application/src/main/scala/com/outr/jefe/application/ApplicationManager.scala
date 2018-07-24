@@ -10,13 +10,13 @@ object ApplicationManager {
 
   def +=(application: Application): Application = synchronized {
     this -= application
-    _applications := application :: _applications()
+    _applications.static(application :: _applications())
     application
   }
 
   def -=(application: Application): Application = synchronized {
     application.stop(force = false)
-    _applications := _applications().filterNot(_.id == application.id)
+    _applications.static(_applications().filterNot(_.id == application.id))
     application
   }
 

@@ -27,11 +27,13 @@ developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
+fork in Test in ThisBuild := true
+
 val coursierVersion = "1.0.3"
 val libraryManagementVersion = "1.1.5"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "2.3.0"
-val scribeVersion = "2.5.2"
+val scribeVersion = "2.5.3"
 val youiVersion = "0.9.0-M16"
 val scalatestVersion = "3.0.5"
 
