@@ -38,9 +38,19 @@ val youiVersion = "0.9.0-M16"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
-  .aggregate(resolve, launch, application, server)
+  .aggregate(core, resolve, launch, application, client, server)
   .settings(
     publishArtifact := false
+  )
+
+lazy val core = project.in(file("core"))
+  .settings(
+    name := "jefe-core",
+    libraryDependencies ++= Seq(
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
+      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
+      "io.youi" %% "youi-core" % youiVersion
+    )
   )
 
 lazy val resolve = project.in(file("resolve"))
@@ -62,12 +72,11 @@ lazy val launch = project.in(file("launch"))
   .settings(
     name := "jefe-launch",
     libraryDependencies ++= Seq(
-      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
-      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
       "com.outr" %% "scribe-slf4j" % scribeVersion,
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
+  .dependsOn(core)
 
 lazy val application = project.in(file("application"))
   .settings(
@@ -80,6 +89,15 @@ lazy val application = project.in(file("application"))
   )
   .dependsOn(resolve, launch)
 
+lazy val client = project.in(file("client"))
+  .settings(
+    name := "jefe-client",
+    libraryDependencies ++= Seq(
+      "io.youi" %% "youi-client" % youiVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+    )
+  )
+
 lazy val server = project.in(file("server"))
   .settings(
     name := "jefe-server",
@@ -89,4 +107,4 @@ lazy val server = project.in(file("server"))
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
-  .dependsOn(application)
+  .dependsOn(core, application)

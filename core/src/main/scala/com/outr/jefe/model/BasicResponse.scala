@@ -1,4 +1,4 @@
-package com.outr.jefe.server.service.model
+package com.outr.jefe.model
 
 import io.youi.ValidationError
 

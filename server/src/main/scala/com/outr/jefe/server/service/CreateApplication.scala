@@ -2,7 +2,7 @@ package com.outr.jefe.server.service
 
 import com.outr.jefe.application.ApplicationConfig
 import com.outr.jefe.server.JefeServer
-import com.outr.jefe.server.service.model.BasicResponse
+import com.outr.jefe.model.BasicResponse
 import io.youi.ValidationError
 import io.youi.http.{HttpConnection, HttpStatus}
 import io.youi.server.rest.{Restful, RestfulResponse}
