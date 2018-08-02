@@ -35,10 +35,11 @@ val powerscalaVersion = "2.0.5"
 val reactifyVersion = "2.3.0"
 val scribeVersion = "2.5.3"
 val youiVersion = "0.9.0-M16"
+val sttpVersion = "1.3.0-RC2"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
-  .aggregate(core, resolve, launch, application, client, server)
+  .aggregate(core, resolve, launch, application, client, server, boot, native)
   .settings(
     publishArtifact := false
   )
@@ -108,3 +109,25 @@ lazy val server = project.in(file("server"))
     )
   )
   .dependsOn(core, application)
+
+lazy val boot = project.in(file("boot"))
+  .settings(
+    name := "jefe-boot",
+    artifact in (Compile, assembly) := {
+      val art = (artifact in (Compile, assembly)).value
+      art.withClassifier(Some("assembly"))
+    },
+    addArtifact(artifact in (Compile, assembly), assembly)
+  )
+  .dependsOn(client, server)
+
+lazy val native = project.in(file("native"))
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    name := "jefe-native",
+    scalaVersion := "2.11.12",
+    crossScalaVersions := List("2.11.12"),
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp" %%% "core" % sttpVersion
+    )
+  )
