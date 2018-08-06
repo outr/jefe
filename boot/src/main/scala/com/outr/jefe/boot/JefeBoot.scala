@@ -1,15 +1,16 @@
 package com.outr.jefe.boot
 
-import com.outr.jefe.boot.command.{Command, HelpCommand}
+import com.outr.jefe.boot.command.{Command, HelpCommand, RunCommand}
 import profig.Profig
 import scribe.Logger
 import scribe.format._
 
 object JefeBoot {
-  private val commands = List(
-    new HelpCommand
+  val commands = List(
+    RunCommand,
+    HelpCommand
   )
-  private lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
+  lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
 
   lazy val logger: Logger = Logger.empty.orphan().withHandler(formatter = Formatter.simple)
 

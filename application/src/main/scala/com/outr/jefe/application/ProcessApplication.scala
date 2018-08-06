@@ -84,6 +84,8 @@ class ProcessApplication(val id: String, launcher: ProcessLauncher) extends Appl
     start()
   }
 
+  def waitForFinished(): ProcessStatus = launched().map(_.waitForFinished()).getOrElse(throw new RuntimeException("Not started!"))
+
   override def stats(): Option[ProcessStats] = launched().flatMap(_.stats())
 
   override def stop(force: Boolean): Unit = {

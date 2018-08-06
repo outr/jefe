@@ -1,6 +1,7 @@
 package com.outr.jefe.launch
 
-import java.io.File
+import java.io.{File, FileInputStream}
+import java.util.jar.JarInputStream
 
 import com.outr.jefe.launch.jmx.JMXConfig
 
@@ -30,17 +31,27 @@ object JARLauncher {
   }
 
   private def buildCommands(jars: List[File],
-                            mainClass: Option[String],
+                            mainClassOption: Option[String],
                             jvmArgs: List[String],
                             args: List[String],
                             jmxConfig: Option[JMXConfig]): List[String] = {
+    val mainClass = mainClassOption.orElse {
+      val jar = jars.head
+      val input = new JarInputStream(new FileInputStream(jar))
+      try {
+        val manifest = input.getManifest
+        Option(manifest.getMainAttributes.getValue("Main-Class"))
+      } finally {
+        input.close()
+      }
+    }.getOrElse(throw new RuntimeException(s"No Main-Class defined in launcher or in manifest for ${jars.head.getName}"))
     val b = ListBuffer.empty[String]
     b += Java
     jmxConfig.foreach(c => b ++= c.args)
     b ++= jvmArgs
     b += "-cp"
     b += jars.map(_.getAbsolutePath).mkString(pathSeparator)
-    mainClass.foreach(b += _)
+    b += mainClass
     b ++= args
     b.toList
   }
