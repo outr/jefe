@@ -1,13 +1,25 @@
 package com.outr.jefe.boot
 
-import com.outr.jefe.boot.command.{Command, HelpCommand, RunCommand}
-import profig.Profig
+import java.io.File
+import java.nio.file.{Files, Paths}
+
+import com.outr.jefe.boot.command._
+import org.powerscala.io.IO
+import profig.{FileType, Profig}
 import scribe.Logger
 import scribe.format._
 
 object JefeBoot {
+  private lazy val userHome = Paths.get(System.getProperty("user.home"))
+  private lazy val root = userHome.resolve(".jefe")
+  lazy val config = Profig("jefe")
+
+  private lazy val configPath = root.resolve("config.json")
+
   val commands = List(
     RunCommand,
+    SetCommand,
+    GetCommand,
     HelpCommand
   )
   lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
@@ -15,6 +27,11 @@ object JefeBoot {
   lazy val logger: Logger = Logger.empty.orphan().withHandler(formatter = Formatter.simple)
 
   def main(args: Array[String]): Unit = {
+    if (Files.exists(configPath)) {
+      val file = configPath.toFile
+      config.merge(file, FileType.Json)
+    }
+
     Profig.loadDefaults()
     Profig.merge(args)
 
@@ -32,6 +49,13 @@ object JefeBoot {
         help()
       }
     }
+  }
+
+  def save(): Unit = {
+    val json = config()
+    val jsonString = json.pretty(io.circe.Printer.spaces2)
+    Files.createDirectories(root)
+    IO.stream(jsonString, configPath.toFile)
   }
 
   def help(): Unit = {
