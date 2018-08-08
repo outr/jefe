@@ -1,6 +1,5 @@
 package com.outr.jefe.boot
 
-import java.io.File
 import java.nio.file.{Files, Paths}
 
 import com.outr.jefe.boot.command._

@@ -15,12 +15,15 @@ object GetCommand extends Command {
       }
     }
     case None => {
-      logger.info("Exactly one argument must be included!")
-      help()
+      val jsonString = JefeBoot.config().pretty(io.circe.Printer.spaces2)
+      logger.info("Stored configuration:")
+      logger.info(jsonString)
     }
   }
 
   override def help(): Unit = {
-    logger.info("Usage: jefe get [key]")
+    logger.info("Usage: jefe get (key)")
+    logger.info("")
+    logger.info("Retrieves the value for the key if specified. Otherwise, outputs all stored configuration.")
   }
 }
