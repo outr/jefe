@@ -47,7 +47,7 @@ object JefeNative {
     val assemblyJARTemp = download.resolve(s"jefe-boot-assembly-$latestVersion.jar.tmp")
     if (Files.notExists(assemblyJAR)) {
       Files.deleteIfExists(assemblyJARTemp)
-      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$latestVersion/jefe-boot_2.12-assembly.jar"
+      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$latestVersion/jefe-boot_2.12-$latestVersion-assembly.jar"
       println(s"Downloading $jar...")
       saveURL(jar, assemblyJARTemp)
       Files.move(assemblyJARTemp, assemblyJAR)
@@ -77,7 +77,7 @@ object JefeNative {
     } else {
       throw new RuntimeException("Unable to find wget or curl!")
     }
-    val process = pb.start()
+    val process = pb.inheritIO().start()
     val exitValue = process.waitFor()
     if (exitValue != 0) {
       throw new RuntimeException(s"Process $pb returned $exitValue")
@@ -91,7 +91,7 @@ object JefeNative {
       jar.toAbsolutePath.toString
     ) ::: args
     val pb = new ProcessBuilder(command: _*)
-    val process = pb.start()
+    val process = pb.inheritIO().start()
     val exitValue = process.waitFor()
     sys.exit(exitValue)
   }
