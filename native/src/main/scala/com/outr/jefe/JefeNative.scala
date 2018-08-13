@@ -1,18 +1,23 @@
 package com.outr.jefe
 
 import java.io.File
-import java.nio.file.{Files, LinkOption, Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 
 import com.softwaremill.sttp.quick._
 
 object JefeNative {
   private val CheckVersionTimeout: Long = 24 * 60 * 60 * 1000
-  private val MavenMetadataURL = uri"http://repo1.maven.org/maven2/com/outr/jefe-runner_2.12/maven-metadata.xml"
+  private val MavenMetadataURL = uri"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/maven-metadata.xml"
 
   // TODO: support other paths
   private lazy val curl = new File("/usr/bin/curl")
   private lazy val wget = new File("/usr/bin/wget")
   private lazy val nohup = new File("/usr/bin/nohup")
+
+  // Determine the location of JRE
+  private lazy val javaHome = Paths.get(determineJavaHome())
+  private lazy val javaBin = javaHome.resolve("bin")
+  private lazy val java = javaBin.resolve("java")
 
   def main(args: Array[String]): Unit = {
     // Determine the home directory for Jefe
@@ -42,21 +47,14 @@ object JefeNative {
     val assemblyJARTemp = download.resolve(s"jefe-boot-assembly-$latestVersion.jar.tmp")
     if (Files.notExists(assemblyJAR)) {
       Files.deleteIfExists(assemblyJARTemp)
-      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-runner_2.12/$latestVersion/jefe-runner_2.12-$latestVersion.jar"
+      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$latestVersion/jefe-boot_2.12-assembly.jar"
       println(s"Downloading $jar...")
       saveURL(jar, assemblyJARTemp)
       Files.move(assemblyJARTemp, assemblyJAR)
     }
 
-    // Determine the location of JRE
-    val javaHome = Paths.get(determineJavaHome())
-    val javaBin = javaHome.resolve("bin")
-    val java = javaBin.resolve("java")
-
-    // TODO: Run the jar
-
-
-    println(s"Hello, World! $directory, Latest Version: [$latestVersion], Java? $java")
+    // Run the jar
+    run(assemblyJAR, args.toList)
   }
 
   private def linesFromMaven(): List[String] = {
@@ -84,5 +82,17 @@ object JefeNative {
     if (exitValue != 0) {
       throw new RuntimeException(s"Process $pb returned $exitValue")
     }
+  }
+
+  private def run(jar: Path, args: List[String]): Unit = {
+    val command = List(
+      java.toAbsolutePath.toString,
+      "-jar",
+      jar.toAbsolutePath.toString
+    ) ::: args
+    val pb = new ProcessBuilder(command: _*)
+    val process = pb.start()
+    val exitValue = process.waitFor()
+    sys.exit(exitValue)
   }
 }
