@@ -2,6 +2,7 @@ package com.outr.jefe.boot
 
 import java.nio.file.{Files, Paths}
 
+import com.outr.jefe.Jefe
 import com.outr.jefe.boot.command._
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import org.powerscala.io.IO
@@ -39,6 +40,7 @@ object JefeBoot {
 
     Profig.loadDefaults()
     Profig.merge(args)
+    Jefe.baseDirectory = root
 
     Profig("arg1").as[Option[String]] match {
       case Some(commandName) => commandsMap.get(commandName) match {

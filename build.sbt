@@ -68,6 +68,7 @@ lazy val resolve = project.in(file("resolve"))
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
+  .dependsOn(core)
 
 lazy val launch = project.in(file("launch"))
   .settings(

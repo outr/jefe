@@ -2,6 +2,7 @@ package com.outr.jefe.resolve
 
 import java.io.File
 
+import com.outr.jefe.Jefe
 import org.apache.ivy.util.url.CredentialsStore
 import sbt.internal.util.ConsoleLogger
 import sbt.librarymanagement.ModuleID
@@ -35,7 +36,7 @@ object SBTResolver extends Resolver {
 
   override protected def resolveInternal(artifact: VersionedArtifact, manager: ArtifactManager): Vector[File] = {
     scribe.info("Resolving dependencies with SBT...")
-    val baseDirectory = new File(".")
+    val baseDirectory = Jefe.baseDirectory.toFile
     val resolvers: Vector[sbt.librarymanagement.Resolver] = manager.repositories.repositories.map(_.toSBT).toVector
     val paths = IvyPaths(baseDirectory, new File(System.getProperty("user.home"), ".ivy2"))
     val config = InlineIvyConfiguration()
