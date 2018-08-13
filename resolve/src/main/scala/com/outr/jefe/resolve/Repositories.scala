@@ -2,6 +2,7 @@ package com.outr.jefe.resolve
 
 case class Repositories(repositories: List[Repository]) {
   def withRepository(repository: Repository): Repositories = Repositories(repositories ::: List(repository))
+  def withRepositories(repositories: Repository*): Repositories = Repositories(this.repositories ::: repositories.toList)
 
   def info(artifact: Artifact): Option[ArtifactDetails] = {
     val allInfo = repositories.flatMap(_.info(artifact))

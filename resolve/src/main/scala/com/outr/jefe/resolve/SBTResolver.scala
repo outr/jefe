@@ -2,6 +2,7 @@ package com.outr.jefe.resolve
 
 import java.io.File
 
+import org.apache.ivy.util.url.CredentialsStore
 import sbt.internal.util.ConsoleLogger
 import sbt.librarymanagement.ModuleID
 import sbt.librarymanagement.ivy.{InlineIvyConfiguration, IvyDependencyResolution, IvyPaths}
@@ -14,9 +15,20 @@ object SBTResolver extends Resolver {
     l
   }
 
+  private lazy val HostRegex = """\S+//(.+?)/.+""".r
+
   implicit class SBTRepository(repository: Repository) {
     def toSBT: sbt.librarymanagement.Resolver = repository match {
-      case MavenRepository(name, url) => sbt.librarymanagement.MavenRepository(name, url)
+      case MavenRepository(name, url, credentials) => {
+        credentials.foreach { c =>
+          val host = url match {
+            case HostRegex(h) => h
+            case _ => throw new RuntimeException(s"Unparsable url: $url")
+          }
+          CredentialsStore.INSTANCE.addCredentials(name, host, c.user, c.pass)
+        }
+        sbt.librarymanagement.MavenRepository(name, url)
+      }
       case _: Ivy2Local.type => sbt.librarymanagement.Resolver.defaultLocal
     }
   }

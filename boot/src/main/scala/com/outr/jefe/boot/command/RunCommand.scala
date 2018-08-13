@@ -1,5 +1,7 @@
 package com.outr.jefe.boot.command
 
+import java.io.File
+
 import com.outr.jefe.application.ProcessApplication
 import com.outr.jefe.boot.JefeBoot
 import profig.Profig
@@ -14,29 +16,32 @@ object RunCommand extends Command {
 
   override def execute(): Unit = {
     Profig("arg2").as[Option[String]] match {
-      case Some(applicationInfo) => applicationInfo match {
-        case MavenVersionedRegex(groupId, artifactId, version) => {
-          val artifact = groupId % artifactId % version
-          val mainClass = Profig("mainClass").as[Option[String]].orElse(
-            JefeBoot.config(s"$groupId.$artifactId.mainClass").as[Option[String]]
-          )
-          val application = ProcessApplication.artifact(artifactId, List(artifact), mainClass = mainClass)
-          application.start()
-          application.waitForFinished()
+      case Some(applicationInfo) => {
+        val artifact: VersionedArtifact = applicationInfo match {
+          case MavenVersionedRegex(groupId, artifactId, version) => {
+            groupId % artifactId % version
+          }
+          case MavenRegex(groupId, artifactId) => {
+            val version = Profig("version").as[Option[String]].getOrElse(
+              JefeBoot.config(s"$groupId.$artifactId.version").as[Option[String]].getOrElse("latest.release")
+            )
+            groupId % artifactId % version
+          }
         }
-        case MavenRegex(groupId, artifactId) => {
-          val artifact = groupId % artifactId
-          val version = Profig("version").as[Option[String]].getOrElse(
-            JefeBoot.config(s"$groupId.$artifactId.version").as[Option[String]].getOrElse("latest.release")
-          )
-          val versioned = artifact % version
-          val mainClass = Profig("mainClass").as[Option[String]].orElse(
-            JefeBoot.config(s"$groupId.$artifactId.mainClass").as[Option[String]]
-          )
-          val application = ProcessApplication.artifact(artifactId, List(versioned), mainClass = mainClass)
-          application.start()
-          application.waitForFinished()
-        }
+        val mainClass = Profig("mainClass").as[Option[String]].orElse(
+          JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").as[Option[String]]
+        )
+        val workingDirectory = new File(Profig("workingDirectory").as[Option[String]].getOrElse("."))
+        val repositories = JefeBoot.repositories
+        val application = ProcessApplication.artifact(
+          id = artifact.name,
+          artifacts = List(artifact),
+          repositories = repositories,
+          mainClass = mainClass,
+          workingDirectory = workingDirectory
+        )
+        application.start()
+        application.waitForFinished()
       }
       case None => {
         logger.info("jefe: missing argument")
@@ -55,5 +60,6 @@ object RunCommand extends Command {
     logger.info("Arguments:")
     logger.info("  --version=???: Sets the version to be used if unspecified")
     logger.info("  --mainClass=???: Sets the main class to run. If unspecified, the manifest will be used to determine the main class to run.")
+    logger.info("  --workingDirectory=???: Sets the working directory for the execution environment. If unspecified, the current directory will be used.")
   }
 }

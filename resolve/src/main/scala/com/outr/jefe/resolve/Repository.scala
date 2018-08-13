@@ -30,7 +30,9 @@ object Ivy2Local extends Repository {
   }
 }
 
-case class MavenRepository(name: String, url: String) extends Repository {
+case class Credentials(user: String, pass: String)
+
+case class MavenRepository(name: String, url: String, credentials: Option[Credentials] = None) extends Repository {
   def info(artifact: Artifact): Option[ArtifactDetails] = {
     val artifactURL = s"$url/${artifact.group.replace('.', '/')}/${artifact.name}"
     val metadataURL = s"$artifactURL/maven-metadata.xml"

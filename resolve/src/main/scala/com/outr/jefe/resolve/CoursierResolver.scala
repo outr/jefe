@@ -5,7 +5,13 @@ import java.io.File
 object CoursierResolver extends Resolver {
   implicit class CoursierRepository(repository: Repository) {
     def toCoursier: coursier.Repository = repository match {
-      case MavenRepository(_, url) => coursier.MavenRepository(url)
+      case MavenRepository(_, url, credentials) => {
+        if (credentials.nonEmpty) throw new RuntimeException(s"")
+        val auth = credentials.map { c =>
+          coursier.core.Authentication(c.user, c.pass)
+        }
+        coursier.MavenRepository(url, authentication = auth)
+      }
       case _: Ivy2Local.type  => coursier.Cache.ivy2Local
     }
   }

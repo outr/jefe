@@ -3,6 +3,7 @@ package com.outr.jefe.boot
 import java.nio.file.{Files, Paths}
 
 import com.outr.jefe.boot.command._
+import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import org.powerscala.io.IO
 import profig.{FileType, Profig}
 import scribe.Logger
@@ -15,11 +16,15 @@ object JefeBoot {
 
   private lazy val configPath = root.resolve("config.json")
 
+  lazy val additionalRepositories: List[MavenRepository] = config("repositories").as[Option[List[MavenRepository]]].getOrElse(Nil)
+  lazy val repositories: Repositories = Repositories.default.withRepositories(additionalRepositories: _*)
+
   val commands = List(
     RunCommand,
     SetCommand,
     GetCommand,
     ServeCommand,
+    RepositoryCommand,
     HelpCommand
   )
   lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
