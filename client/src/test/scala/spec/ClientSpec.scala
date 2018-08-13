@@ -6,7 +6,7 @@ import com.outr.jefe.client.JefeClient
 import com.outr.jefe.server.{JefeServer, SecurityFilter}
 import io.youi.ValidationError
 import io.youi.client.HttpClient
-import io.youi.http.{HttpRequest, HttpStatus}
+import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.{AsyncWordSpec, Matchers, WordSpec}
 import profig.Profig
@@ -74,7 +74,7 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
         ServerUtil.isPortAvailable(8080) should be(false)
       }
       val client = HttpClient()
-      val response = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
+      val response: HttpResponse = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
       response.status should be(HttpStatus.OK)
       val content = response.content.getOrElse(fail())
       content.length should be(13L)

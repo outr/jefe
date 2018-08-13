@@ -6,7 +6,7 @@ import org.scalatest._
 import profig.Profig
 import com.outr.jefe.resolve._
 import io.youi.client.HttpClient
-import io.youi.http.{HttpRequest, HttpStatus}
+import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
 import io.youi.net._
 import io.youi.server.ServerUtil
 import org.scalatest.concurrent.Eventually
@@ -49,7 +49,7 @@ class ServerSpec extends WordSpec with Matchers with Eventually {
         ServerUtil.isPortAvailable(8080) should be(false)
       }
       val client = HttpClient()
-      val response = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
+      val response: HttpResponse = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
       response.status should be(HttpStatus.OK)
       val content = response.content.getOrElse(fail())
       content.length should be(13L)

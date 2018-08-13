@@ -2,14 +2,13 @@ package spec
 
 import com.outr.jefe.application.{ApplicationManager, ProcessApplication}
 import io.youi.client.HttpClient
-import io.youi.http.{HttpRequest, HttpStatus}
+import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
 import io.youi.net._
 import io.youi.server.ServerUtil
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{Matchers, WordSpec}
 import profig.Profig
-
 import com.outr.jefe.resolve._
 
 import scala.concurrent.Await
@@ -44,7 +43,7 @@ class ApplicationSpec extends WordSpec with Matchers with Eventually {
         ServerUtil.isPortAvailable(8080) should be(false)
       }
       val client = HttpClient()
-      val response = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
+      val response: HttpResponse = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
       response.status should be(HttpStatus.OK)
       val content = response.content.getOrElse(fail())
       content.length should be(13L)
