@@ -6,6 +6,7 @@ import com.outr.jefe.application.ProcessApplication
 import com.outr.jefe.boot.JefeBoot
 import profig.Profig
 import com.outr.jefe.resolve._
+import org.powerscala.io.IO
 
 object RunCommand extends Command {
   private val MavenVersionedRegex = """(.+)[:](.+)[:](.+)""".r
@@ -32,12 +33,14 @@ object RunCommand extends Command {
           JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").as[Option[String]]
         )
         val workingDirectory = new File(Profig("workingDirectory").as[Option[String]].getOrElse("."))
+        val jvmArgs = loadJVMArgs(workingDirectory)
         val repositories = JefeBoot.repositories
         val application = ProcessApplication.artifact(
           id = artifact.name,
           artifacts = List(artifact),
           repositories = repositories,
           mainClass = mainClass,
+          jvmArgs = jvmArgs,
           workingDirectory = workingDirectory
         )
         application.start()
@@ -50,12 +53,25 @@ object RunCommand extends Command {
     }
   }
 
+  def loadJVMArgs(directory: File): List[String] = {
+    var file = new File(directory, ".jvmopts")
+    if (!file.exists()) {
+      file = new File(".jvmopts")
+    }
+    if (file.exists()) {
+      IO.stream(file, new StringBuilder).toString.split("\n").map(_.trim).filter(_.nonEmpty).toList
+    } else {
+      Nil
+    }
+  }
+
   override def help(): Unit = {
     logger.info("Usage: jefe run groupId:artifactId(:version)")
     logger.info("")
     logger.info("You must specify a proper Maven dependency to run.")
     logger.info("If you exclude the version, a Jefe setting of groupId.artifactId.version will be used if specified. Otherwise, the latest release will be used.")
     logger.info("For the version you can also specify 'latest.release' for the latest release or 'latest' for latest integration.")
+    logger.info("JVM Arguments can be provided via '.jvmopts' file found in the current directory or the 'workingDirectory'.")
     logger.info("By default, blocks until the process is terminated")
     logger.info("Arguments:")
     logger.info("  --version=???: Sets the version to be used if unspecified")
