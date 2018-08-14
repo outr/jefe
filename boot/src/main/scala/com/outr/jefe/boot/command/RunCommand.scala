@@ -33,8 +33,16 @@ object RunCommand extends Command {
           JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").as[Option[String]]
         )
         val workingDirectory = new File(Profig("workingDirectory").as[Option[String]].getOrElse("."))
-        val jvmArgs = loadArgs(workingDirectory, ".jvmopts")
-        val args = loadArgs(workingDirectory, ".args")
+        val jvmArgs = loadArgs(List(
+          Profig("jvmArgs").as[Option[String]].map(new File(_)),
+          Option(new File(workingDirectory, ".jvmopts")),
+          Option(new File(".jvmopts"))
+        ).flatten: _*)
+        val args = loadArgs(List(
+          Profig("args").as[Option[String]].map(new File(_)),
+          Option(new File(workingDirectory, ".args")),
+          Option(new File(".args"))
+        ).flatten: _*)
         val repositories = JefeBoot.repositories
         val application = ProcessApplication.artifact(
           id = artifact.name,
@@ -55,16 +63,14 @@ object RunCommand extends Command {
     }
   }
 
-  def loadArgs(directory: File, fileName: String): List[String] = {
-    var file = new File(directory, fileName)
-    if (!file.exists()) {
-      file = new File(fileName)
-    }
-    if (file.exists()) {
-      IO.stream(file, new StringBuilder).toString.split("\n").map(_.trim).filter(_.nonEmpty).toList
-    } else {
-      Nil
-    }
+  def loadArgs(files: File*): List[String] = {
+    files.flatMap { file =>
+      if (file.exists()) {
+        IO.stream(file, new StringBuilder).toString.split("\n").map(_.trim).filter(_.nonEmpty).toList
+      } else {
+        Nil
+      }
+    }.toList.distinct
   }
 
   override def help(): Unit = {
@@ -80,5 +86,7 @@ object RunCommand extends Command {
     logger.info("  --version=???: Sets the version to be used if unspecified")
     logger.info("  --mainClass=???: Sets the main class to run. If unspecified, the manifest will be used to determine the main class to run.")
     logger.info("  --workingDirectory=???: Sets the working directory for the execution environment. If unspecified, the current directory will be used.")
+    logger.info("  --jvmArgs=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
+    logger.info("  --args=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
   }
 }
