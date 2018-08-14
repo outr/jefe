@@ -33,7 +33,8 @@ object RunCommand extends Command {
           JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").as[Option[String]]
         )
         val workingDirectory = new File(Profig("workingDirectory").as[Option[String]].getOrElse("."))
-        val jvmArgs = loadJVMArgs(workingDirectory)
+        val jvmArgs = loadArgs(workingDirectory, ".jvmopts")
+        val args = loadArgs(workingDirectory, ".args")
         val repositories = JefeBoot.repositories
         val application = ProcessApplication.artifact(
           id = artifact.name,
@@ -41,6 +42,7 @@ object RunCommand extends Command {
           repositories = repositories,
           mainClass = mainClass,
           jvmArgs = jvmArgs,
+          args = args,
           workingDirectory = workingDirectory
         )
         application.start()
@@ -53,10 +55,10 @@ object RunCommand extends Command {
     }
   }
 
-  def loadJVMArgs(directory: File): List[String] = {
-    var file = new File(directory, ".jvmopts")
+  def loadArgs(directory: File, fileName: String): List[String] = {
+    var file = new File(directory, fileName)
     if (!file.exists()) {
-      file = new File(".jvmopts")
+      file = new File(fileName)
     }
     if (file.exists()) {
       IO.stream(file, new StringBuilder).toString.split("\n").map(_.trim).filter(_.nonEmpty).toList
@@ -72,6 +74,7 @@ object RunCommand extends Command {
     logger.info("If you exclude the version, a Jefe setting of groupId.artifactId.version will be used if specified. Otherwise, the latest release will be used.")
     logger.info("For the version you can also specify 'latest.release' for the latest release or 'latest' for latest integration.")
     logger.info("JVM Arguments can be provided via '.jvmopts' file found in the current directory or the 'workingDirectory'.")
+    logger.info("Arguments can be provided via '.args' file found in the current directory of the 'workingDirectory'.")
     logger.info("By default, blocks until the process is terminated")
     logger.info("Arguments:")
     logger.info("  --version=???: Sets the version to be used if unspecified")
