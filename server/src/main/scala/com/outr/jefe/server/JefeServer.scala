@@ -12,7 +12,7 @@ import io.youi.Unique
 object JefeServer extends Server {
   Profig.defaults(List("--listeners.http.port", "10565"))
 
-  val token: String = Profig("jefe.token").as[Option[String]].getOrElse {
+  val token: String = Profig("jefe.token").opt[String].getOrElse {
     val generated = Unique(length = 8, characters = Unique.Readable)
     scribe.warn(s"No jefe.token specified in configuration, so a runtime value was generated: $generated")
     generated

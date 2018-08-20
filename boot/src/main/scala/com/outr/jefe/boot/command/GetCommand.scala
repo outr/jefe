@@ -7,9 +7,9 @@ object GetCommand extends Command {
   override def name: String = "get"
   override def description: String = "Gets a persistent variable in Jefe configuration (~/.jefe/config.json)"
 
-  override def execute(): Unit = Profig("arg2").as[Option[String]] match {
+  override def execute(): Unit = Profig("arg2").opt[String] match {
     case Some(key) => {
-      JefeBoot.config(key).as[Option[String]] match {
+      JefeBoot.config(key).opt[String] match {
         case Some(value) => logger.info(s"$key=$value")
         case None => logger.info(s"No value found for $key")
       }

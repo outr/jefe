@@ -16,20 +16,20 @@ object RunCommand extends Command {
   override def description: String = "Runs an ad-hoc process"
 
   override def execute(): Unit = {
-    var mainClass = Profig("mainClass").as[Option[String]]
-    val workingDirectory = new File(Profig("workingDirectory").as[Option[String]].getOrElse("."))
+    var mainClass = Profig("mainClass").opt[String]
+    val workingDirectory = new File(Profig("workingDirectory").opt[String].getOrElse("."))
     val jvmArgs = loadArgs(List(
-      Profig("jvmArgs").as[Option[String]].map(new File(_)),
+      Profig("jvmArgs").opt[String].map(new File(_)),
       Option(new File(workingDirectory, ".jvmopts")),
       Option(new File(".jvmopts"))
     ).flatten: _*)
     val args = loadArgs(List(
-      Profig("args").as[Option[String]].map(new File(_)),
+      Profig("args").opt[String].map(new File(_)),
       Option(new File(workingDirectory, ".args")),
       Option(new File(".args"))
     ).flatten: _*)
 
-    val applicationOption: Option[Application] = Profig("arg2").as[Option[String]] match {
+    val applicationOption: Option[Application] = Profig("arg2").opt[String] match {
       case Some(jar) if jar.toLowerCase.endsWith(".jar") => {
         val lastSlash = jar.lastIndexOf('/')
         val id = jar.substring(lastSlash + 1, jar.lastIndexOf('.'))
@@ -45,7 +45,7 @@ object RunCommand extends Command {
       case Some(war) if war.toLowerCase.endsWith(".war") => {
         val lastSlash = war.lastIndexOf('/')
         val id = war.substring(lastSlash + 1, war.lastIndexOf('.'))
-        val port = Profig("port").as[Option[Int]].getOrElse(8080)
+        val port = Profig("port").opt[Int].getOrElse(8080)
         Some(ProcessApplication.war(
           id = id,
           war = new File(workingDirectory, war),
@@ -60,14 +60,14 @@ object RunCommand extends Command {
             groupId % artifactId % version
           }
           case MavenRegex(groupId, artifactId) => {
-            val version = Profig("version").as[Option[String]].getOrElse(
-              JefeBoot.config(s"$groupId.$artifactId.version").as[Option[String]].getOrElse("latest.release")
+            val version = Profig("version").opt[String].getOrElse(
+              JefeBoot.config(s"$groupId.$artifactId.version").opt[String].getOrElse("latest.release")
             )
             groupId % artifactId % version
           }
         }
         mainClass = mainClass.orElse(
-          JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").as[Option[String]]
+          JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").opt[String]
         )
         val repositories = JefeBoot.repositories
         Some(ProcessApplication.artifact(

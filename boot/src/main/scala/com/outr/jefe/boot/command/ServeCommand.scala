@@ -11,11 +11,11 @@ object ServeCommand extends Command {
   override def description: String = "Serves static content on a host and port"
 
   override def execute(): Unit = {
-    val path = Profig("path").as[Option[String]]
-      .orElse(Profig("arg2").as[Option[String]])
+    val path = Profig("path").opt[String]
+      .orElse(Profig("arg2").opt[String])
       .map(new File(_)).getOrElse(new File("."))
-    val host = Profig("host").as[Option[String]].getOrElse("localhost")
-    val port = Profig("port").as[Option[Int]].getOrElse(8080)
+    val host = Profig("host").opt[String].getOrElse("localhost")
+    val port = Profig("port").opt[Int].getOrElse(8080)
     val application = new StaticSiteApplication("serve", path, Some(HttpServerListener(host, port)))
     logger.info(s"Serving ${path.getCanonicalPath}...")
     application.start()

@@ -7,7 +7,7 @@ object HelpCommand extends Command {
   override def name: String = "help"
   override def description: String = "Additional information about using Jefe"
 
-  override def execute(): Unit = Profig("arg2").as[Option[String]] match {
+  override def execute(): Unit = Profig("arg2").opt[String] match {
     case Some(command) => JefeBoot
       .commandsMap
       .getOrElse(command, throw new RuntimeException(s"$command not found"))

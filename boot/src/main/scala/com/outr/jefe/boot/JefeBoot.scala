@@ -17,7 +17,7 @@ object JefeBoot {
 
   private lazy val configPath = root.resolve("config.json")
 
-  lazy val additionalRepositories: List[MavenRepository] = config("repositories").as[Option[List[MavenRepository]]].getOrElse(Nil)
+  lazy val additionalRepositories: List[MavenRepository] = config("repositories").opt[List[MavenRepository]].getOrElse(Nil)
   lazy val repositories: Repositories = Repositories.default.withRepositories(additionalRepositories: _*)
 
   val commands = List(
@@ -42,7 +42,7 @@ object JefeBoot {
     Profig.merge(args)
     Jefe.baseDirectory = root
 
-    Profig("arg1").as[Option[String]] match {
+    Profig("arg1").opt[String] match {
       case Some(commandName) => commandsMap.get(commandName) match {
         case Some(command) => command.execute()
         case None => {

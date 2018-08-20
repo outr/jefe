@@ -8,8 +8,8 @@ object SetCommand extends Command {
   override def description: String = "Sets a persistent variable in Jefe configuration (~/.jefe/config.json)"
 
   override def execute(): Unit = {
-    Profig("arg2").as[Option[String]].flatMap { key =>
-      Profig("arg3").as[Option[String]].map(value => key -> value)
+    Profig("arg2").opt[String].flatMap { key =>
+      Profig("arg3").opt[String].map(value => key -> value)
     } match {
       case Some((key, value)) => {
         JefeBoot.config(key).merge(ProfigUtil.string2JSON(value))

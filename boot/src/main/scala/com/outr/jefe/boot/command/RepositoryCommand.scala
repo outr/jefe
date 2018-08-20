@@ -8,13 +8,13 @@ object RepositoryCommand extends Command {
   override def name: String = "repository"
   override def description: String = "Adds or removes a repository used to resolve Maven dependencies"
 
-  override def execute(): Unit = Profig("arg2").as[Option[String]].getOrElse("") match {
+  override def execute(): Unit = Profig("arg2").opt[String].getOrElse("") match {
     case "" => help()
     case "add" => {
-      val name = Profig("arg3").as[Option[String]].getOrElse(fail("Both the name and URL for the Maven repository must be provided"))
-      val url = Profig("arg4").as[Option[String]].getOrElse(fail("Both the name and URL for the Maven repository must be provided"))
-      val username = Profig("username").as[Option[String]]
-      val password = Profig("password").as[Option[String]]
+      val name = Profig("arg3").opt[String].getOrElse(fail("Both the name and URL for the Maven repository must be provided"))
+      val url = Profig("arg4").opt[String].getOrElse(fail("Both the name and URL for the Maven repository must be provided"))
+      val username = Profig("username").opt[String]
+      val password = Profig("password").opt[String]
       if (name.nonEmpty && url.nonEmpty) {
         val repositories = remove(name)
         val credentials = List(username, password).flatten match {
@@ -26,7 +26,7 @@ object RepositoryCommand extends Command {
         JefeBoot.save()
       }
     }
-    case "remove" => remove(Profig("arg3").as[Option[String]].getOrElse(fail("The name for the Maven repository must be provided")))
+    case "remove" => remove(Profig("arg3").opt[String].getOrElse(fail("The name for the Maven repository must be provided")))
     case arg => fail(s"The argument '$arg' is unsupported")
   }
 
