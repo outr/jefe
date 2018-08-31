@@ -4,9 +4,8 @@ scala:
   - 2.12.6
 jdk:
   - oraclejdk8
-before_install:
-  - sudo apt update
-  - sudo apt install -y clang libunwind-dev libgc-dev libre2-dev
+before_script:
+  - curl https://raw.githubusercontent.com/scala-native/scala-native/master/scripts/travis_setup.sh | bash -x
 cache:
   directories:
     - $HOME/.ivy2/cache
