@@ -1,6 +1,6 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.0-M2"
+version in ThisBuild := "2.0.0-M3-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.6"
 crossScalaVersions in ThisBuild := List("2.12.6", "2.11.12")
 resolvers in ThisBuild ++= Seq(
@@ -35,7 +35,6 @@ val powerscalaVersion = "2.0.5"
 val reactifyVersion = "3.0.2"
 val scribeVersion = "2.5.3"
 val youiVersion = "0.9.0-M17"
-val sttpVersion = "1.3.0-RC2"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
@@ -127,8 +126,5 @@ lazy val native = project.in(file("native"))
   .settings(
     name := "jefe-native",
     scalaVersion := "2.11.12",
-    crossScalaVersions := List("2.11.12"),
-    libraryDependencies ++= Seq(
-      "com.softwaremill.sttp" %%% "core" % sttpVersion
-    )
+    crossScalaVersions := List("2.11.12")
   )

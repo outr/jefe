@@ -2,12 +2,11 @@ package com.outr.jefe
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
-
-import com.softwaremill.sttp.quick._
+import scala.collection.JavaConverters._
 
 object JefeNative {
   private val CheckVersionTimeout: Long = 24 * 60 * 60 * 1000
-  private val MavenMetadataURL = uri"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/maven-metadata.xml"
+  private val MavenMetadataURL = "http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/maven-metadata.xml"
 
   // TODO: support other paths
   private lazy val curl = new File("/usr/bin/curl")
@@ -58,9 +57,13 @@ object JefeNative {
   }
 
   private def linesFromMaven(): List[String] = {
-    val request = sttp.get(MavenMetadataURL)
-    val response = request.send()
-    response.unsafeBody.split('\n').toList.map(_.trim)
+    val tempPath = Files.createTempFile("maven", "metadata")
+    try {
+      saveURL(MavenMetadataURL, tempPath)
+      Files.lines(tempPath).iterator().asScala.toList.map(_.trim)
+    } finally {
+      Files.deleteIfExists(tempPath)
+    }
   }
 
   private def determineJavaHome(): String = Option(System.getenv("JAVA_HOME")) match {
