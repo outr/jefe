@@ -1,9 +1,12 @@
 sudo: false
 language: scala
 scala:
-  - 2.12.3
+  - 2.12.6
 jdk:
   - oraclejdk8
+before_install:
+  - sudo apt update
+  - sudo apt install -y clang libunwind-dev libgc-dev libre2-dev
 cache:
   directories:
     - $HOME/.ivy2/cache
@@ -11,3 +14,5 @@ cache:
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
   - find $HOME/.sbt -name "*.lock" -delete
+after_success:
+  - bash generate_native.sh
