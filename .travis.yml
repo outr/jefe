@@ -13,5 +13,8 @@ cache:
 before_cache:
   - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
   - find $HOME/.sbt -name "*.lock" -delete
-after_success:
-  - bash generate_native.sh
+#after_success:
+  #- bash generate_native.sh
+script:
+  #- sbt clean test
+  - sbt native/clean native/nativeLink
