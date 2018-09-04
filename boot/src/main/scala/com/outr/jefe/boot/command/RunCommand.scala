@@ -24,7 +24,7 @@ object RunCommand extends Command {
       Option(new File(".jvmopts"))
     ).flatten: _*)
     val args = loadArgs(List(
-      Profig("args").opt[String].map(new File(_)),
+      Profig("appArgs").opt[String].map(new File(_)),
       Option(new File(workingDirectory, ".args")),
       Option(new File(".args"))
     ).flatten: _*)
@@ -122,7 +122,7 @@ object RunCommand extends Command {
     logger.info("  --mainClass=???: Sets the main class to run. If unspecified, the manifest will be used to determine the main class to run.")
     logger.info("  --workingDirectory=???: Sets the working directory for the execution environment. If unspecified, the current directory will be used.")
     logger.info("  --jvmArgs=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
-    logger.info("  --args=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
+    logger.info("  --appArgs=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
     logger.info("  --port=???: Sets the port for use with running a WAR (defaults to 8080 if unspecified)")
   }
 }
