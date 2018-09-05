@@ -29,7 +29,7 @@ object ProcessApplication {
   def artifact(id: String,
                artifacts: List[VersionedArtifact],
                repositories: Repositories = Repositories.default,
-               resolver: Resolver = SBTResolver,
+               resolver: Resolver = Resolver.default,
                additionalJARs: List[File] = Nil,
                mainClass: Option[String] = None,
                jvmArgs: List[String] = Nil,

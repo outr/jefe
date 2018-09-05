@@ -2,6 +2,8 @@ package com.outr.jefe.resolve
 
 import java.io.File
 
+import profig.Profig
+
 /**
   * Manages resolution of artifacts
   */
@@ -27,6 +29,17 @@ trait Resolver {
           .getOrElse(throw new RuntimeException(s"No latest found for $artifact"))
       }
       case _ => artifact
+    }
+  }
+}
+
+object Resolver {
+  def default: Resolver = Profig("resolver").as[String]("sbt") match {
+    case "coursier" => CoursierResolver
+    case "sbt" => SBTResolver
+    case s => {
+      scribe.warn(s"Invalid resolver specified: $s (must be 'sbt' or 'coursier'), defaulting to sbt...")
+      SBTResolver
     }
   }
 }
