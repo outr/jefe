@@ -87,7 +87,13 @@ object RunCommand extends Command {
       }
     }
     applicationOption match {
-      case Some(application) => application.start()
+      case Some(application) => {
+        application.start()
+        application match {
+          case pa: ProcessApplication => pa.waitForFinished()
+          case _ => // Not a ProcessApplication
+        }
+      }
       case _ => // Nothing
     }
   }

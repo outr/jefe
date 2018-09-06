@@ -16,7 +16,14 @@ object JefeNative {
   // Determine the location of JRE
   private lazy val javaHome = Paths.get(determineJavaHome())
   private lazy val javaBin = javaHome.resolve("bin")
-  private lazy val java = javaBin.resolve("java")
+  private lazy val java = {
+    val binJava = new File("/usr/bin/java")
+    if (binJava.exists()) {
+      binJava.toPath
+    } else {
+      javaBin.resolve("java")
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     // Determine the home directory for Jefe
