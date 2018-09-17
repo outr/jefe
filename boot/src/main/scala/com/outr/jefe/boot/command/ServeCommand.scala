@@ -11,7 +11,7 @@ object ServeCommand extends Command {
   override def description: String = "Serves static content on a host and port"
 
   override def execute(): Unit = {
-    val path = Profig("path").opt[String]
+    val path = Profig("directory").opt[String]
       .orElse(Profig("arg2").opt[String])
       .map(new File(_)).getOrElse(new File("."))
     val host = Profig("host").opt[String].getOrElse("localhost")
@@ -25,7 +25,7 @@ object ServeCommand extends Command {
     logger.info("Usage: jefe serve /server/path/ --host=localhost --port=8080")
     logger.info("")
     logger.info("Arguments:")
-    logger.info("  --path=???: Sets the path to serve files from. If unspecified, it will use the current path. May be specified as an unlabeled argument or named.")
+    logger.info("  --directory=???: Sets the path to serve files from. If unspecified, it will use the current path. May be specified as an unlabeled argument or named.")
     logger.info("  --host=???: Sets the hostname or IP address to bind to. If unspecified, it will use the default (localhost).")
     logger.info("  --port=???: Sets the port to bind to. If unspecified, it will use the default port (8080).")
   }
