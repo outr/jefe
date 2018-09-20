@@ -1,6 +1,6 @@
 package com.outr.jefe.client
 
-import com.outr.jefe.application.ApplicationConfig
+import com.outr.jefe.application.Application
 import com.outr.jefe.model.{ApplicationActionRequest, BasicResponse, StatsResponse}
 import io.youi.client.HttpClient
 import io.youi.http.Headers
@@ -14,9 +14,9 @@ class JefeClient(baseURL: URL, token: String) {
   private lazy val headers = Headers.empty.withHeader("jefe.token", token)
 
   object application {
-    def create(config: ApplicationConfig): Future[BasicResponse] = {
+    def create(application: Application): Future[BasicResponse] = {
       val url = baseURL.copy(path = path"/application/create")
-      client.restful[ApplicationConfig, BasicResponse](url, config, headers)
+      client.restful[Application, BasicResponse](url, application, headers)
     }
 
     def start(applicationId: String): Future[BasicResponse] = {
@@ -43,5 +43,10 @@ class JefeClient(baseURL: URL, token: String) {
       val url = baseURL.copy(path = path"/application/remove")
       client.restful[ApplicationActionRequest, BasicResponse](url, ApplicationActionRequest(applicationId), headers)
     }
+  }
+
+  def stop(): Future[BasicResponse] = {
+    val url = baseURL.copy(path = path"/stop")
+    client.restful[Unit, BasicResponse](url, (), headers)
   }
 }

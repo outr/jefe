@@ -2,7 +2,7 @@ package com.outr.jefe.boot.command
 
 import java.io.File
 
-import com.outr.jefe.application.{Application, ProcessApplication}
+import com.outr.jefe.application._
 import com.outr.jefe.boot.JefeBoot
 import profig.Profig
 import com.outr.jefe.resolve._
@@ -28,30 +28,34 @@ object RunCommand extends Command {
       Option(new File(workingDirectory, ".args")),
       Option(new File(".args"))
     ).flatten: _*)
+    val background = Profig("background").as[String]("false").toBoolean
+    // TODO: JMX support
 
     val applicationOption: Option[Application] = Profig("arg2").opt[String] match {
       case Some(jar) if jar.toLowerCase.endsWith(".jar") => {
         val lastSlash = jar.lastIndexOf('/')
         val id = jar.substring(lastSlash + 1, jar.lastIndexOf('.'))
-        Some(ProcessApplication.jar(
+        Some(JARApplication(
           id = id,
-          jars = List(new File(workingDirectory, jar)),
+          jars = List(new File(workingDirectory, jar).getAbsolutePath),
           mainClass = mainClass,
           jvmArgs = jvmArgs,
           args = args,
-          workingDirectory = workingDirectory
+          workingDirectory = workingDirectory.getAbsolutePath,
+          background = background
         ))
       }
       case Some(war) if war.toLowerCase.endsWith(".war") => {
         val lastSlash = war.lastIndexOf('/')
         val id = war.substring(lastSlash + 1, war.lastIndexOf('.'))
         val port = Profig("port").opt[Int].getOrElse(8080)
-        Some(ProcessApplication.war(
+        Some(WARApplication(
           id = id,
-          war = new File(workingDirectory, war),
+          war = new File(workingDirectory, war).getAbsolutePath,
           port = port,
           jvmArgs = jvmArgs,
-          workingDirectory = workingDirectory
+          workingDirectory = workingDirectory.getAbsolutePath,
+          background = background
         ))
       }
       case Some(applicationInfo) => {
@@ -70,14 +74,15 @@ object RunCommand extends Command {
           JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").opt[String]
         )
         val repositories = JefeBoot.repositories
-        Some(ProcessApplication.artifact(
+        Some(ArtifactApplication(
           id = artifact.name,
           artifacts = List(artifact),
           repositories = repositories,
           mainClass = mainClass,
           jvmArgs = jvmArgs,
           args = args,
-          workingDirectory = workingDirectory
+          workingDirectory = workingDirectory.getAbsolutePath,
+          background = background
         ))
       }
       case None => {
@@ -90,7 +95,7 @@ object RunCommand extends Command {
       case Some(application) => {
         application.start()
         application match {
-          case pa: ProcessApplication => pa.waitForFinished()
+          case pa: ProcessApplication if !background => pa.waitForFinished()
           case _ => // Not a ProcessApplication
         }
       }
@@ -130,5 +135,6 @@ object RunCommand extends Command {
     logger.info("  --jvmArgs=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
     logger.info("  --appArgs=???: Sets the file path to find JVM arguments to be supplied to the process (line separated)")
     logger.info("  --port=???: Sets the port for use with running a WAR (defaults to 8080 if unspecified)")
+    logger.info("  --background=???: If true, starts as a background process that will continue running when the terminal exits (nohup). Defaults to false.")
   }
 }

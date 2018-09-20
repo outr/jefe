@@ -1,6 +1,6 @@
 package spec
 
-import com.outr.jefe.application.ProcessApplication
+import com.outr.jefe.application.{ArtifactApplication, ProcessApplication}
 import com.outr.jefe.server.JefeServer
 import org.scalatest._
 import profig.Profig
@@ -31,7 +31,7 @@ class ServerSpec extends WordSpec with Matchers with Eventually {
       JefeServer.isRunning should be(true)
     }
     "create app" in {
-      val app = ProcessApplication.artifact(
+      val app = ArtifactApplication(
         id = "youi-example",
         artifacts = List("io.youi" %% "youi-example" % "latest.release"),
         mainClass = Some("io.youi.example.ServerExampleApplication")
@@ -40,7 +40,7 @@ class ServerSpec extends WordSpec with Matchers with Eventually {
     }
     "launch app" in {
       ServerUtil.isPortAvailable(8080) should be(true)
-      val app = JefeServer.applications.byId("youi-example").getOrElse(fail()).asInstanceOf[ProcessApplication]
+      val app = JefeServer.applications.byId("youi-example").getOrElse(fail()).asInstanceOf[ArtifactApplication]
       JefeServer.applications.launch(app)
       eventually(app.isRunning)
     }

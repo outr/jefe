@@ -1,6 +1,6 @@
 package spec
 
-import com.outr.jefe.application.ArtifactConfig
+import com.outr.jefe.application.ArtifactApplication
 import com.outr.jefe.resolve._
 import com.outr.jefe.client.JefeClient
 import com.outr.jefe.server.{JefeServer, SecurityFilter}
@@ -36,13 +36,11 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
       JefeServer.isRunning should be(true)
     }
     "create an app" in {
-      val config = ArtifactConfig(
+      val config = ArtifactApplication(
         id = "youi-example",
         artifacts = List("io.youi" %% "youi-example" % "latest.release"),
         repositories = Repositories.default,
-        useCoursier = false,
         mainClass = Some("io.youi.example.ServerExampleApplication"),
-        workingDirectory = ".",
         environment = Map.empty
       )
       client.application.create(config).map { response =>
@@ -55,7 +53,7 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
       badClient.application.start("youi-example").map { response =>
         response.success should be(false)
         response.errors should be(List(ValidationError(
-          message = "Invalid request, no jefe.token specified in the header",
+          message = "Invalid request, bad jefe.token specified",
           code = SecurityFilter.FailureCode,
           status = HttpStatus.Forbidden
         )))

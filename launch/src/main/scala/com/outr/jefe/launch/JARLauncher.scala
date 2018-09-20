@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream}
 import java.util.jar.JarInputStream
 
 import com.outr.jefe.launch.jmx.JMXConfig
+import scribe.Logger
 
 import scala.collection.mutable.ListBuffer
 
@@ -13,11 +14,15 @@ class JARLauncher(val jars: List[File],
                   val args: List[String] = Nil,           // TODO: support typed entries to replace String
                   val jmxConfig: Option[JMXConfig] = None,
                   workingDirectory: File = new File("."),
-                  environment: Map[String, String] = Map.empty)
+                  environment: Map[String, String] = Map.empty,
+                  loggerId: Long = Logger.rootId,
+                  background: Boolean = false)
   extends ProcessLauncher(
     commands = JARLauncher.buildCommands(jars, mainClass, jvmArgs, args, jmxConfig),
     workingDirectory = workingDirectory,
-    environment = environment
+    environment = environment,
+    loggerId = loggerId,
+    background = background
   )
 
 object JARLauncher {

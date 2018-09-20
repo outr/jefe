@@ -16,7 +16,7 @@ object ServeCommand extends Command {
       .map(new File(_)).getOrElse(new File("."))
     val host = Profig("host").opt[String].getOrElse("localhost")
     val port = Profig("port").opt[Int].getOrElse(8080)
-    val application = new StaticSiteApplication("serve", path, Some(HttpServerListener(host, port)))
+    val application = StaticSiteApplication("serve", path.getAbsolutePath, Some(HttpServerListener(host, port)))
     logger.info(s"Serving ${path.getCanonicalPath}...")
     application.start()
   }

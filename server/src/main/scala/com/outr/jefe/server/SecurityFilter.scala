@@ -14,7 +14,11 @@ object SecurityFilter extends ConnectionFilter {
     val token = connection.request.headers.first(HeaderKey("jefe.token")).getOrElse("")
     if (JefeServer.token != token) {
       val ve = ValidationError(
-        message = "Invalid request, no jefe.token specified in the header",
+        message = if (token.isEmpty) {
+          "Invalid request, no jefe.token specified in the header"
+        } else {
+          "Invalid request, bad jefe.token specified"
+        },
         code = FailureCode,
         status = HttpStatus.Forbidden
       )

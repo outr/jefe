@@ -1,6 +1,6 @@
 package spec
 
-import com.outr.jefe.application.{ApplicationManager, ProcessApplication}
+import com.outr.jefe.application.{ApplicationManager, ArtifactApplication, ProcessApplication}
 import io.youi.client.HttpClient
 import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
 import io.youi.net._
@@ -25,7 +25,7 @@ class ApplicationSpec extends WordSpec with Matchers with Eventually {
       Profig.loadDefaults()
     }
     "create app" in {
-      val app = ProcessApplication.artifact(
+      val app = ArtifactApplication(
         id = "youi-example",
         artifacts = List("io.youi" %% "youi-example" % "latest.release"),
         mainClass = Some("io.youi.example.ServerExampleApplication")
@@ -34,7 +34,7 @@ class ApplicationSpec extends WordSpec with Matchers with Eventually {
     }
     "launch app" in {
       ServerUtil.isPortAvailable(8080) should be(true)
-      val app = ApplicationManager.byId("youi-example").getOrElse(fail()).asInstanceOf[ProcessApplication]
+      val app = ApplicationManager.byId("youi-example").getOrElse(fail()).asInstanceOf[ArtifactApplication]
       ApplicationManager.launch(app)
       eventually(app.isRunning)
     }

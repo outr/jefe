@@ -1,6 +1,6 @@
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.0-M4"
+version in ThisBuild := "2.0.0-M5-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.6"
 crossScalaVersions in ThisBuild := List("2.12.6", "2.11.12")
 resolvers in ThisBuild ++= Seq(
@@ -113,6 +113,7 @@ lazy val server = project.in(file("server"))
 lazy val boot = project.in(file("boot"))
   .settings(
     name := "jefe-boot",
+    fork := true,
     artifact in (Compile, assembly) := {
       val art = (artifact in (Compile, assembly)).value
       art.withClassifier(Some("assembly"))
