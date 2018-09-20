@@ -13,6 +13,7 @@ object RemoveApplication extends Restful[ApplicationActionRequest, BasicResponse
     val response = JefeServer.applications.byId(request.applicationId) match {
       case Some(application) => {
         JefeServer.applications -= application
+        JefeServer.save()
         RestfulResponse(BasicResponse(success = true, errors = Nil), HttpStatus.OK)
       }
       case None => {

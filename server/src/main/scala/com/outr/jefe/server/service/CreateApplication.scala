@@ -12,6 +12,7 @@ import scala.concurrent.Future
 object CreateApplication extends Restful[Application, BasicResponse] {
   override def apply(connection: HttpConnection, application: Application): Future[RestfulResponse[BasicResponse]] = {
     JefeServer.applications += application
+    JefeServer.save()
     Future.successful(RestfulResponse(BasicResponse(success = true, errors = Nil), HttpStatus.OK))
   }
 

@@ -1,4 +1,5 @@
 package com.outr.jefe.boot.command
+
 import com.outr.jefe.application.Application
 
 import scala.concurrent.{Await, Future}
@@ -28,8 +29,4 @@ object StartCommand extends ApplicationCommand {
     logger.info(s"${application.id} started successfully")
     sys.exit(0)
   }
-
-  override def helpArguments: List[(String, String)] = super.helpArguments ::: List(
-    "persistent" -> "If true, will persist this application's configuration to be used each time the server starts. Defaults to true."
-  )
 }

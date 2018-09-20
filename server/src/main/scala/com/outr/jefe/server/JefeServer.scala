@@ -1,10 +1,14 @@
 package com.outr.jefe.server
 
-import com.outr.jefe.application.ApplicationManager
+import java.nio.file.Files
+
+import com.outr.jefe.Jefe
+import com.outr.jefe.application.{Application, ApplicationManager}
 import com.outr.jefe.server.service._
+import io.circe.Printer
 import io.youi.http.Method
 import io.youi.server.Server
-import profig.Profig
+import profig.{JsonUtil, Profig}
 import io.youi.server.dsl._
 import io.circe.generic.auto._
 import io.youi.Unique
@@ -20,6 +24,8 @@ object JefeServer extends Server {
     generated
   }
 
+  private lazy val applicationsPath = Jefe.baseDirectory.resolve("applications.json")
+
   override protected def init(): Unit = {
     super.init()
 
@@ -33,13 +39,31 @@ object JefeServer extends Server {
             "stop" / StopApplication,
             "restart" / RestartApplication,
             "remove" / RemoveApplication
+            // TODO: EnableApplication / DisableApplication
           ),
           "stop" / StopServer
         )
       )
     )
 
-    // TODO: Load configuration
+    // Load configuration
+    if (Files.exists(applicationsPath)) {
+      synchronized {
+        val jsonString = new String(Files.readAllBytes(applicationsPath), "UTF-8")
+        val applications = JsonUtil.fromJsonString[List[Application]](jsonString)
+        applications.foreach { application =>
+          JefeServer.applications += application
+          if (application.enabled) {
+            application.start()
+          }
+        }
+      }
+    }
+  }
+
+  def save(): Unit = synchronized {
+    val jsonString = JsonUtil.toJson(applications.all()).pretty(Printer.spaces2)
+    Files.write(applicationsPath, jsonString.getBytes("UTF-8"))
   }
 
   def applications: ApplicationManager.type = ApplicationManager
