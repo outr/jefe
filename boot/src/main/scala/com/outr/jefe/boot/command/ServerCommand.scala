@@ -3,7 +3,7 @@ package com.outr.jefe.boot.command
 import com.outr.jefe.client.JefeClient
 import com.outr.jefe.server.JefeServer
 import io.youi.net.URL
-import io.youi.server.{HttpServerListener, Server, ServerUtil}
+import io.youi.server.ServerUtil
 import profig.Profig
 
 import scala.concurrent.Await
@@ -13,7 +13,7 @@ object ServerCommand extends Command {
   override def name: String = "server"
   override def description: String = "Starts the Jefe server that manages a stateful list of applications"
 
-  private lazy val client = new JefeClient(URL(s"http://${JefeServer.host}:${JefeServer.port}"), JefeServer.token)
+  lazy val client = new JefeClient(URL(s"http://${JefeServer.host}:${JefeServer.port}"), JefeServer.token)
 
   override def execute(): Unit = Profig("arg2").opt[String] match {
     case Some("start") => start()

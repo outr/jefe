@@ -17,6 +17,7 @@ object SetCommand extends Command {
       }
       case None => {
         logger.info("Exactly two arguments must be included!")
+        logger.info("")
         help()
       }
     }

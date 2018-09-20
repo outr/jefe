@@ -27,6 +27,8 @@ object JefeBoot {
     ServeCommand,
     RepositoryCommand,
     ServerCommand,
+    StartCommand,
+    StopCommand,
     HelpCommand
   )
   lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
