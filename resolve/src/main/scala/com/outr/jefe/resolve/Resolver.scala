@@ -19,14 +19,18 @@ trait Resolver {
   protected def updateVersion(artifact: VersionedArtifact, manager: ArtifactManager): VersionedArtifact = {
     artifact.version.toString() match {
       case "latest.release" => {
-        manager
+        val v = manager
           .release(artifact.artifact)
           .getOrElse(throw new RuntimeException(s"No latest release found for $artifact"))
+        scribe.info(s"Resolved $v for latest.release")
+        v
       }
       case "latest" | "latest.integration" => {
-        manager
+        val v = manager
           .latest(artifact.artifact)
           .getOrElse(throw new RuntimeException(s"No latest found for $artifact"))
+        scribe.info(s"Resolved $v for latest.integration")
+        v
       }
       case _ => artifact
     }

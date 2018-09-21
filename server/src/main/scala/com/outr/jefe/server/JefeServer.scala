@@ -1,6 +1,6 @@
 package com.outr.jefe.server
 
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
 
 import com.outr.jefe.Jefe
 import com.outr.jefe.application.{Application, ApplicationManager}
@@ -14,6 +14,7 @@ import io.circe.generic.auto._
 import io.youi.Unique
 
 object JefeServer extends Server {
+  Jefe.baseDirectory = Paths.get(System.getProperty("user.home")).resolve(".jefe")
   Profig.defaults(List("--listeners.http.port", "10565"))
 
   val host: String = Profig("listeners.http.host").as[String]("127.0.0.1")
@@ -67,6 +68,8 @@ object JefeServer extends Server {
   }
 
   def applications: ApplicationManager.type = ApplicationManager
+
+  def main(args: Array[String]): Unit = start()
 
   override def dispose(): Unit = {
     scribe.warn("Shutting down")

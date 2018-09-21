@@ -1,10 +1,12 @@
 package com.outr.jefe.boot.command
 
+import com.outr.jefe.application.ArtifactApplication
 import com.outr.jefe.client.JefeClient
 import com.outr.jefe.server.JefeServer
 import io.youi.net.URL
 import io.youi.server.ServerUtil
 import profig.Profig
+import com.outr.jefe.resolve._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -31,13 +33,19 @@ object ServerCommand extends Command {
     }
   }
 
-  def start(): Unit = {
+  def start(blocking: Boolean = Profig("blocking").opt[String].exists(_.toBoolean)): Unit = {
     assert(ServerUtil.isPortAvailable(JefeServer.port, JefeServer.host), s"${JefeServer.host}:${JefeServer.port} is already in use")
-    val blocking = Profig("blocking").opt[String].exists(_.toBoolean)
     if (blocking) {
       JefeServer.start()
     } else {
-      // TODO: start JefeServer in another process
+      val artifacts = List("com.outr" % "jefe-server" % "latest.release")
+      val app = ArtifactApplication(
+        id = "jefe-server",
+        artifacts = artifacts,
+        mainClass = Some("com.outr.jefe.server.JefeServer"),
+        background = true
+      )
+      app.start()
     }
   }
 
@@ -49,7 +57,8 @@ object ServerCommand extends Command {
   }
 
   def restart(): Unit = {
-
+    Await.result(client.stop(), 15.seconds)
+    start(blocking = false)
   }
 
   override def help(): Unit = {
