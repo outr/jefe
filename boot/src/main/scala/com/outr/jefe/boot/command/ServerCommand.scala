@@ -38,7 +38,8 @@ object ServerCommand extends Command {
     if (blocking) {
       JefeServer.start()
     } else {
-      val artifacts = List("com.outr" % "jefe-server" % "latest.release")
+      val version = Profig("version").as[String]("latest.release")
+      val artifacts = List("com.outr" % "jefe-server_2.12" % version)
       val app = ArtifactApplication(
         id = "jefe-server",
         artifacts = artifacts,
