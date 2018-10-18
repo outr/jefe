@@ -118,12 +118,12 @@ trait ApplicationCommand extends Command {
   
   override def help(): Unit = {
     logger.info(description)
-    logger.info("JAR Usage: jefe run path/to/a.jar")
-    logger.info("WAR Usage: jefe run path/to/a.war")
-    logger.info("Dependency Usage: jefe run groupId:artifactId(:version)")
+    logger.info(s"JAR Usage: jefe $name path/to/a.jar")
+    logger.info(s"WAR Usage: jefe $name path/to/a.war")
+    logger.info(s"Dependency Usage: jefe $name groupId:artifactId(:version)")
     logger.info("")
     logger.info("Dependency Help:")
-    logger.info("  You must specify a proper Maven dependency to run.")
+    logger.info(s"  You must specify a proper Maven dependency to $name.")
     logger.info("  If you exclude the version, a Jefe setting of groupId.artifactId.version will be used if specified. Otherwise, the latest release will be used.")
     logger.info("  For the version you can also specify 'latest.release' for the latest release or 'latest' for latest integration.")
     logger.info("")
