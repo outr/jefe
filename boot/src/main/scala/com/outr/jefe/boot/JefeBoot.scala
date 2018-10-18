@@ -7,8 +7,10 @@ import com.outr.jefe.boot.command._
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import org.powerscala.io.IO
 import profig.{FileType, Profig}
-import scribe.Logger
+import scribe.{Level, Logger}
 import scribe.format._
+import scribe.writer.FileWriter
+import scribe.writer.file.LogPath
 
 object JefeBoot {
   private lazy val userHome = Paths.get(System.getProperty("user.home"))
@@ -29,6 +31,7 @@ object JefeBoot {
     ServerCommand,
     StartCommand,
     StopCommand,
+    ServiceCommand,
     HelpCommand
   )
   lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
@@ -44,6 +47,14 @@ object JefeBoot {
     Profig.loadDefaults()
     Profig.merge(args)
     Jefe.baseDirectory = root
+
+    Logger
+      .root
+      .clearHandlers()
+      .withHandler(
+        minimumLevel = Some(Level.Info),
+        writer = FileWriter().path(LogPath.daily("jefe", directory = Jefe.baseDirectory.resolve("logs")))
+      )
 
     Profig("arg1").opt[String] match {
       case Some(commandName) => commandsMap.get(commandName) match {
