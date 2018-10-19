@@ -145,7 +145,10 @@ case class StaticSiteApplication(id: String,
     handler.file(new File(directory))
   }
 
-  override def start(): Unit = server.start()
+  override def start(): Unit = {
+    scribe.info(s"Serving $directory...")
+    server.start()
+  }
 
   override def isRunning: Boolean = server.isRunning
 

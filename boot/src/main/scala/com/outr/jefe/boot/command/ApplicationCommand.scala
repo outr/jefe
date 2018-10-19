@@ -2,12 +2,13 @@ package com.outr.jefe.boot.command
 
 import java.io.File
 
-import com.outr.jefe.application.{Application, ArtifactApplication, JARApplication, WARApplication}
+import com.outr.jefe.application._
 import com.outr.jefe.boot.JefeBoot
 import com.outr.jefe.resolve.VersionedArtifact
 import org.powerscala.io.IO
 import profig.Profig
 import com.outr.jefe.resolve._
+import io.youi.server.HttpServerListener
 
 trait ApplicationCommand extends Command {
   private val MavenVersionedRegex = """(.+)[:](.+)[:](.+)""".r
@@ -20,6 +21,7 @@ trait ApplicationCommand extends Command {
   def execute(application: Application): Unit
 
   def loadApplication(): Option[Application] = {
+    val explicitId = Profig("id").opt[String]
     var mainClass = Profig("mainClass").opt[String]
     val workingDirectory = new File(Profig("workingDirectory").opt[String].getOrElse("."))
     val jvmArgs = loadArgs(List(
@@ -33,12 +35,14 @@ trait ApplicationCommand extends Command {
       Option(new File(".args"))
     ).flatten: _*)
     val background = allowBackground && Profig("background").as[String]("false").toBoolean
+    val host = Profig("host").opt[String].getOrElse("localhost")
+    val port = Profig("port").opt[Int].getOrElse(8080)
     // TODO: JMX support
 
     Profig("arg2").opt[String] match {
       case Some(jar) if jar.toLowerCase.endsWith(".jar") => {
         val lastSlash = jar.lastIndexOf('/')
-        val id = jar.substring(lastSlash + 1, jar.lastIndexOf('.'))
+        val id = explicitId.getOrElse(jar.substring(lastSlash + 1, jar.lastIndexOf('.')))
         Some(JARApplication(
           id = id,
           jars = List(new File(workingDirectory, jar).getAbsolutePath),
@@ -51,8 +55,7 @@ trait ApplicationCommand extends Command {
       }
       case Some(war) if war.toLowerCase.endsWith(".war") => {
         val lastSlash = war.lastIndexOf('/')
-        val id = war.substring(lastSlash + 1, war.lastIndexOf('.'))
-        val port = Profig("port").opt[Int].getOrElse(8080)
+        val id = explicitId.getOrElse(war.substring(lastSlash + 1, war.lastIndexOf('.')))
         Some(WARApplication(
           id = id,
           war = new File(workingDirectory, war).getAbsolutePath,
@@ -61,6 +64,10 @@ trait ApplicationCommand extends Command {
           workingDirectory = workingDirectory.getAbsolutePath,
           background = background
         ))
+      }
+      case Some("serve") => {
+        val id = explicitId.getOrElse(workingDirectory.getName)
+        Some(StaticSiteApplication(id, workingDirectory.getAbsolutePath, Some(HttpServerListener(host, port))))
       }
       case Some(applicationInfo) => {
         val artifact: VersionedArtifact = applicationInfo match {
@@ -77,9 +84,10 @@ trait ApplicationCommand extends Command {
         mainClass = mainClass.orElse(
           JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").opt[String]
         )
+        val id = explicitId.getOrElse(artifact.name)
         val repositories = JefeBoot.repositories
         Some(ArtifactApplication(
-          id = artifact.name,
+          id = id,
           artifacts = List(artifact),
           repositories = repositories,
           mainClass = mainClass,
@@ -108,19 +116,25 @@ trait ApplicationCommand extends Command {
   }
 
   def helpArguments: List[(String, String)] = List(
+    "id" -> "Optionally sets the identifier for this application (Generated automatically if unset)",
     "version" -> "Sets the version to be used if unspecified",
     "mainClass" -> "Sets the main class to run. If unspecified, the manifest will be used to determine the main class to run.",
     "workingDirectory" -> "Sets the working directory for the execution environment. If unspecified, the current directory will be used.",
     "jvmArgs" -> "Sets the file path to find JVM arguments to be supplied to the process (line separated)",
     "appArgs" -> "Sets the file path to find JVM arguments to be supplied to the process (line separated)",
-    "port" -> "Sets the port for use with running a WAR (defaults to 8080 if unspecified."
+    "host" -> "Sets the hostname or IP address to bind to for use with serving content. If unspecified, it will use the default (localhost)",
+    "port" -> "Sets the port for use with running a WAR or serving content (defaults to 8080 if unspecified)."
   )
   
   override def help(): Unit = {
     logger.info(description)
     logger.info(s"JAR Usage: jefe $name path/to/a.jar")
     logger.info(s"WAR Usage: jefe $name path/to/a.war")
+    logger.info(s"Serve a path Usage: jefe $name serve")
     logger.info(s"Dependency Usage: jefe $name groupId:artifactId(:version)")
+    logger.info("")
+    logger.info("Serve Help:")
+    logger.info("  Starts a web server serving the content under the specified path")
     logger.info("")
     logger.info("Dependency Help:")
     logger.info(s"  You must specify a proper Maven dependency to $name.")

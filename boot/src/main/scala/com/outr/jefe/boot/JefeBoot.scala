@@ -26,7 +26,6 @@ object JefeBoot {
     RunCommand,
     SetCommand,
     GetCommand,
-    ServeCommand,
     RepositoryCommand,
     ServerCommand,
     StartCommand,
