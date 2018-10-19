@@ -1,0 +1,7 @@
+{
+  "jefe": {
+    "server": {
+      "persistence": false
+    }
+  }
+}

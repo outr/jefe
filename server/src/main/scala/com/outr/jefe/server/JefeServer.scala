@@ -25,10 +25,13 @@ object JefeServer extends Server {
     generated
   }
 
+  lazy val persistence: Boolean = Profig("jefe.server.persistence").as[Boolean](true)
   private lazy val applicationsPath = Jefe.baseDirectory.resolve("applications.json")
 
   override protected def init(): Unit = {
     super.init()
+
+    if (!persistence) scribe.warn("Server persistence is disabled")
 
     handler(
       filters(
@@ -48,7 +51,7 @@ object JefeServer extends Server {
     )
 
     // Load configuration
-    if (Files.exists(applicationsPath)) {
+    if (persistence && Files.exists(applicationsPath)) {
       synchronized {
         val jsonString = new String(Files.readAllBytes(applicationsPath), "UTF-8")
         val applications = JsonUtil.fromJsonString[List[Application]](jsonString)
@@ -63,8 +66,10 @@ object JefeServer extends Server {
   }
 
   def save(): Unit = synchronized {
-    val jsonString = JsonUtil.toJson(applications.all()).pretty(Printer.spaces2)
-    Files.write(applicationsPath, jsonString.getBytes("UTF-8"))
+    if (persistence) {
+      val jsonString = JsonUtil.toJson(applications.all()).pretty(Printer.spaces2)
+      Files.write(applicationsPath, jsonString.getBytes("UTF-8"))
+    }
   }
 
   def applications: ApplicationManager.type = ApplicationManager
