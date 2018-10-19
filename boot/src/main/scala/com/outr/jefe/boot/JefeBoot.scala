@@ -30,6 +30,7 @@ object JefeBoot {
     ServerCommand,
     StartCommand,
     StopCommand,
+    ProxyCommand,
     ServiceCommand,
     HelpCommand
   )

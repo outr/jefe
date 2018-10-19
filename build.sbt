@@ -99,7 +99,7 @@ lazy val client = project.in(file("client"))
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
-  .dependsOn(core, application, server % "test->compile")
+  .dependsOn(core, application, server)
 
 lazy val server = project.in(file("server"))
   .settings(

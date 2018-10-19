@@ -27,6 +27,7 @@ object JefeServer extends Server {
 
   lazy val persistence: Boolean = Profig("jefe.server.persistence").as[Boolean](true)
   private lazy val applicationsPath = Jefe.baseDirectory.resolve("applications.json")
+  private lazy val proxiesPath = Jefe.baseDirectory.resolve("proxies.json")
 
   override protected def init(): Unit = {
     super.init()
@@ -45,20 +46,35 @@ object JefeServer extends Server {
             "remove" / RemoveApplication
             // TODO: EnableApplication / DisableApplication
           ),
+          "proxy" / List(
+            "add" / AddProxy,
+            "remove" / RemoveProxy
+          ),
           "stop" / StopServer
         )
       )
     )
 
     // Load configuration
-    if (persistence && Files.exists(applicationsPath)) {
+    if (persistence) {
       synchronized {
-        val jsonString = new String(Files.readAllBytes(applicationsPath), "UTF-8")
-        val applications = JsonUtil.fromJsonString[List[Application]](jsonString)
-        applications.foreach { application =>
-          JefeServer.applications += application
-          if (application.enabled) {
-            application.start()
+        // Load applications
+        if (Files.exists(applicationsPath)) {
+          val applicationsJson = new String(Files.readAllBytes(applicationsPath), "UTF-8")
+          val applications = JsonUtil.fromJsonString[List[Application]](applicationsJson)
+          applications.foreach { application =>
+            JefeServer.applications += application
+            if (application.enabled) {
+              application.start()
+            }
+          }
+        }
+
+        // Load proxies
+        if (Files.exists(proxiesPath)) {
+          val proxiesJson = new String(Files.readAllBytes(proxiesPath), "UTF-8")
+          JsonUtil.fromJsonString[List[ProxyConfig]](proxiesJson).foreach { proxy =>
+            proxies += proxy
           }
         }
       }
@@ -67,8 +83,16 @@ object JefeServer extends Server {
 
   def save(): Unit = synchronized {
     if (persistence) {
-      val jsonString = JsonUtil.toJson(applications.all()).pretty(Printer.spaces2)
-      Files.write(applicationsPath, jsonString.getBytes("UTF-8"))
+      Files.write(
+        applicationsPath,
+        JsonUtil.toJson(applications.all()).pretty(Printer.spaces2).getBytes("UTF-8")
+      )
+      Files.write(
+        proxiesPath,
+        JsonUtil.toJson(proxies.items().collect {
+          case pc: ProxyConfig => pc
+        }).pretty(Printer.spaces2).getBytes("UTF-8")
+      )
     }
   }
 

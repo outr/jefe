@@ -2,6 +2,7 @@ package com.outr.jefe.client
 
 import com.outr.jefe.application.Application
 import com.outr.jefe.model.{ApplicationActionRequest, BasicResponse, StatsResponse}
+import com.outr.jefe.server.ProxyConfig
 import io.youi.client.HttpClient
 import io.youi.http.Headers
 import io.youi.net._
@@ -42,6 +43,17 @@ class JefeClient(baseURL: URL, token: String) {
     def remove(applicationId: String): Future[BasicResponse] = {
       val url = baseURL.copy(path = path"/application/remove")
       client.restful[ApplicationActionRequest, BasicResponse](url, ApplicationActionRequest(applicationId), headers)
+    }
+  }
+
+  object proxy {
+    def add(config: ProxyConfig): Future[BasicResponse] = {
+      val url = baseURL.copy(path = path"/proxy/add")
+      client.restful[ProxyConfig, BasicResponse](url, config, headers)
+    }
+    def remove(config: ProxyConfig): Future[BasicResponse] = {
+      val url = baseURL.copy(path = path"/proxy/remove")
+      client.restful[ProxyConfig, BasicResponse](url, config, headers)
     }
   }
 
