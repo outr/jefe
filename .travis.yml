@@ -16,5 +16,5 @@ before_cache:
 #after_success:
   #- bash generate_native.sh
 script:
-  #- sbt clean test
-  - sbt native/clean native/nativeLink
+  - sbt clean test
+  - sbt nativeNative/clean nativeNative/nativeLink
