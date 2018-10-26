@@ -1,4 +1,3 @@
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.7")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject"      % "0.5.0")
@@ -13,3 +12,4 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.3.3")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.12")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.8")

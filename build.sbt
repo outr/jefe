@@ -1,3 +1,5 @@
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
+
 name := "jefe"
 organization in ThisBuild := "com.outr"
 version in ThisBuild := "2.0.0-M7-SNAPSHOT"
@@ -38,7 +40,7 @@ val youiVersion = "0.9.0-M20"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
-  .aggregate(core, resolve, launch, application, client, server, boot, native)
+  .aggregate(core, resolve, launch, application, client, server, boot, nativeJVM, nativeNative)
   .settings(
     publishArtifact := false
   )
@@ -122,10 +124,15 @@ lazy val boot = project.in(file("boot"))
   )
   .dependsOn(client, server)
 
-lazy val native = project.in(file("native"))
-  .enablePlugins(ScalaNativePlugin)
+lazy val native = crossProject(JVMPlatform, NativePlatform).in(file("native"))
   .settings(
     name := "jefe-native",
     scalaVersion := "2.11.12",
     crossScalaVersions := List("2.11.12")
   )
+  .jvmSettings(
+    assemblyJarName in assembly := "jefe-native.jar"
+  )
+
+lazy val nativeJVM = native.jvm
+lazy val nativeNative = native.native
