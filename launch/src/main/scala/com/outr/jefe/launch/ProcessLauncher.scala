@@ -8,10 +8,11 @@ import com.outr.jefe.Jefe
 import scribe.Logger
 import scala.collection.JavaConverters._
 
-class ProcessLauncher(val commands: List[String],
+class ProcessLauncher(val name: String,
+                      val commands: List[String],
                       val workingDirectory: File = new File("."),
                       val environment: Map[String, String] = Map.empty,
-                      val loggerId: Long = Logger.root.id,
+                      val loggerId: Long = Launcher.loggerId,
                       val background: Boolean = false) extends Launcher {
   private lazy val script = Files.createTempFile(Jefe.baseDirectory, "script", ".sh")
 

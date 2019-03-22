@@ -2,11 +2,10 @@ package com.outr.jefe.application
 
 import java.io.File
 
-import com.outr.jefe.launch.{JARLauncher, Launched, ProcessLauncher, ProcessStatus}
+import com.outr.jefe.launch._
 import com.outr.jefe.launch.jmx.{JMXConfig, ProcessStats}
 import com.outr.jefe.resolve.{ArtifactManager, Repositories, Resolver, VersionedArtifact}
 import reactify.Var
-import scribe.Logger
 import com.outr.jefe.resolve._
 import io.youi.server.{HttpServerListener, HttpsServerListener, Server}
 
@@ -53,10 +52,10 @@ case class ProcessApplication(id: String,
                               commands: List[String],
                               workingDirectory: String = ".",
                               environment: Map[String, String] = Map.empty,
-                              loggerId: Long = Logger.rootId,
+                              loggerId: Long = Launcher.loggerId,
                               background: Boolean = false,
                               enabled: Boolean = true) extends ApplicationProcess {
-  override protected def launcher: ProcessLauncher = new ProcessLauncher(commands, new File(workingDirectory), environment, loggerId, background)
+  override protected def launcher: ProcessLauncher = new ProcessLauncher(id, commands, new File(workingDirectory), environment, loggerId, background)
 }
 
 case class JARApplication(id: String,
@@ -67,12 +66,12 @@ case class JARApplication(id: String,
                           jmxConfig: Option[JMXConfig] = None,
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
-                          loggerId: Long = Logger.rootId,
+                          loggerId: Long = Launcher.loggerId,
                           background: Boolean = false,
                           enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
     val files = jars.map(path => new File(path))
-    new JARLauncher(files, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
+    new JARLauncher(id, files, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
   }
 }
 
@@ -87,7 +86,7 @@ case class ArtifactApplication(id: String,
                                jmxConfig: Option[JMXConfig] = None,
                                workingDirectory: String = ".",
                                environment: Map[String, String] = Map.empty,
-                               loggerId: Long = Logger.rootId,
+                               loggerId: Long = Launcher.loggerId,
                                background: Boolean = false,
                                enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
@@ -103,7 +102,7 @@ case class ArtifactApplication(id: String,
     } ::: additionalJARs.map(new File(_))).distinct
 
     // Create application
-    new JARLauncher(jars, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
+    new JARLauncher(id, jars, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
   }
 }
 
@@ -114,7 +113,7 @@ case class WARApplication(id: String,
                           jmxConfig: Option[JMXConfig] = None,
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
-                          loggerId: Long = Logger.rootId,
+                          loggerId: Long = Launcher.loggerId,
                           background: Boolean = false,
                           enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
@@ -129,7 +128,7 @@ case class WARApplication(id: String,
     val args = List("--port", port.toString, war)
 
     // Create application
-    new JARLauncher(jars, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
+    new JARLauncher(id, jars, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
   }
 }
 

@@ -3,8 +3,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 name := "jefe"
 organization in ThisBuild := "com.outr"
 version in ThisBuild := "2.0.0-M7-SNAPSHOT"
-scalaVersion in ThisBuild := "2.12.6"
-crossScalaVersions in ThisBuild := List("2.12.6", "2.11.12")
+scalaVersion in ThisBuild := "2.12.8"
+crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -32,11 +32,11 @@ developers in ThisBuild := List(
 fork in Test in ThisBuild := true
 
 val coursierVersion = "1.0.3"
-val libraryManagementVersion = "1.2.2"
+val libraryManagementVersion = "1.2.4"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "3.0.3"
-val scribeVersion = "2.6.0"
-val youiVersion = "0.9.0-M20"
+val scribeVersion = "2.7.2"
+val youiVersion = "0.10.11"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))

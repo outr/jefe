@@ -6,6 +6,7 @@ import com.outr.jefe.launch.jmx.{JMXProcessMonitor, ProcessStats}
 
 import scala.concurrent.Future
 import scribe.Execution.global
+import scribe.MDC
 
 case class LaunchedProcess(launcher: Launcher, process: Process) extends Launched {
   lazy val processId: Int = {
@@ -21,7 +22,9 @@ case class LaunchedProcess(launcher: Launcher, process: Process) extends Launche
 
   Future {
     while (process.isAlive) {
-      Option(inputReader.readLine()).foreach(logger.info(_))
+      MDC.contextualize("application", launcher.name) {
+        Option(inputReader.readLine()).foreach(logger.info(_))
+      }
     }
   }
   Future {

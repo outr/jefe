@@ -8,16 +8,18 @@ import scribe.Logger
 
 import scala.collection.mutable.ListBuffer
 
-class JARLauncher(val jars: List[File],
+class JARLauncher(name: String,
+                  val jars: List[File],
                   val mainClass: Option[String] = None,
                   val jvmArgs: List[String] = Nil,        // TODO: support typed entries to replace String
                   val args: List[String] = Nil,           // TODO: support typed entries to replace String
                   val jmxConfig: Option[JMXConfig] = None,
                   workingDirectory: File = new File("."),
                   environment: Map[String, String] = Map.empty,
-                  loggerId: Long = Logger.rootId,
+                  loggerId: Long = Launcher.loggerId,
                   background: Boolean = false)
   extends ProcessLauncher(
+    name = name,
     commands = JARLauncher.buildCommands(jars, mainClass, jvmArgs, args, jmxConfig),
     workingDirectory = workingDirectory,
     environment = environment,
