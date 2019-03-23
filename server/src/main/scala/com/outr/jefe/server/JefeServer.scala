@@ -13,6 +13,9 @@ import io.youi.server.dsl._
 import io.circe.generic.auto._
 import io.youi.Unique
 
+import scala.concurrent.Future
+import scribe.Execution.global
+
 object JefeServer extends Server {
   Jefe.baseDirectory = Paths.get(System.getProperty("user.home")).resolve(".jefe")
   Profig.defaults(List("--listeners.http.port", "10565"))
@@ -29,9 +32,7 @@ object JefeServer extends Server {
   private lazy val applicationsPath = Jefe.baseDirectory.resolve("applications.json")
   private lazy val proxiesPath = Jefe.baseDirectory.resolve("proxies.json")
 
-  override protected def init(): Unit = {
-    super.init()
-
+  override protected def init(): Future[Unit] = super.init().map { _ =>
     if (!persistence) scribe.warn("Server persistence is disabled")
 
     handler(
