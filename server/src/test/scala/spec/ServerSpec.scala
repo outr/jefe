@@ -1,12 +1,12 @@
 package spec
 
-import com.outr.jefe.application.{ArtifactApplication, ProcessApplication}
+import com.outr.jefe.application.ArtifactApplication
 import com.outr.jefe.server.JefeServer
 import org.scalatest._
 import profig.Profig
 import com.outr.jefe.resolve._
 import io.youi.client.HttpClient
-import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
+import io.youi.http.{HttpResponse, HttpStatus}
 import io.youi.net._
 import io.youi.server.ServerUtil
 import org.scalatest.concurrent.Eventually
@@ -14,6 +14,7 @@ import org.scalatest.time._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scribe.Execution.global
 
 class ServerSpec extends WordSpec with Matchers with Eventually {
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(
@@ -48,8 +49,8 @@ class ServerSpec extends WordSpec with Matchers with Eventually {
       eventually {
         ServerUtil.isPortAvailable(8080) should be(false)
       }
-      val client = HttpClient()
-      val response: HttpResponse = Await.result(client.send(HttpRequest(url = url"http://localhost:8080/hello.txt")), Duration.Inf)
+      val client = HttpClient.url(url"http://localhost:8080/hello.txt")
+      val response: HttpResponse = Await.result(client.send(), Duration.Inf)
       response.status should be(HttpStatus.OK)
       val content = response.content.getOrElse(fail())
       content.length should be(13L)

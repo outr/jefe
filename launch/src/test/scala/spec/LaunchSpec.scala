@@ -2,6 +2,7 @@ package spec
 
 import com.outr.jefe.launch.{ProcessLauncher, ProcessStoppedStatus}
 import org.scalatest.{Matchers, WordSpec}
+import scribe.output.LogOutput
 import scribe.{LogRecord, Logger}
 import scribe.writer.Writer
 
@@ -13,7 +14,7 @@ class LaunchSpec extends WordSpec with Matchers with Writer {
   "Launcher" should {
     "launch a simple script" in {
       val logger = Logger.empty.orphan().withHandler(writer = this).replace()
-      val launcher = new ProcessLauncher(List("./test1.sh"), loggerId = logger.id)
+      val launcher = new ProcessLauncher("test1", List("./test1.sh"), loggerId = logger.id)
       val launched = launcher.launch()
       val status = launched.waitForFinished()
       status should be(ProcessStoppedStatus(0))
@@ -21,7 +22,7 @@ class LaunchSpec extends WordSpec with Matchers with Writer {
     }
   }
 
-  override def write[M](record: LogRecord[M], output: String): Unit = synchronized {
+  override def write[M](record: LogRecord[M], output: LogOutput): Unit = synchronized {
     records += record
   }
 }
