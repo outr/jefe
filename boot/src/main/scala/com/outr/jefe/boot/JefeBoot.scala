@@ -4,18 +4,18 @@ import java.nio.file.{Files, Paths}
 
 import com.outr.jefe.Jefe
 import com.outr.jefe.boot.command._
+import com.outr.jefe.launch.Launcher
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import org.powerscala.io.IO
-import profig.{FileType, Profig}
+import profig.{FileType, Profig, ProfigPath}
 import scribe.{Level, Logger}
-import scribe.format._
 import scribe.writer.FileWriter
 import scribe.writer.file.LogPath
 
 object JefeBoot {
   private lazy val userHome = Paths.get(System.getProperty("user.home"))
   private lazy val root = userHome.resolve(".jefe")
-  lazy val config = Profig("jefe")
+  lazy val config: ProfigPath = Profig("jefe")
 
   private lazy val configPath = root.resolve("config.json")
 
@@ -35,8 +35,6 @@ object JefeBoot {
     HelpCommand
   )
   lazy val commandsMap: Map[String, Command] = commands.map(c => c.name -> c).toMap
-
-  lazy val logger: Logger = Logger.empty.orphan().withHandler(formatter = Formatter.simple)
 
   def main(args: Array[String]): Unit = {
     if (Files.exists(configPath)) {
@@ -60,13 +58,13 @@ object JefeBoot {
       case Some(commandName) => commandsMap.get(commandName) match {
         case Some(command) => command.execute()
         case None => {
-          logger.info(s"Unknown command: $commandName")
-          logger.info("")
+          Launcher.logger.info(s"Unknown command: $commandName")
+          Launcher.logger.info("")
           help()
         }
       }
       case None => {
-        logger.info("jefe: missing command")
+        Launcher.logger.info("jefe: missing command")
         help()
       }
     }
@@ -80,11 +78,11 @@ object JefeBoot {
   }
 
   def help(): Unit = {
-    logger.info("Usage: jefe [command] [options]")
-    logger.info("")
-    logger.info("Valid Commands:")
+    Launcher.logger.info("Usage: jefe [command] [options]")
+    Launcher.logger.info("")
+    Launcher.logger.info("Valid Commands:")
     commands.foreach { command =>
-      logger.info(s"  ${command.name}: ${command.description}")
+      Launcher.logger.info(s"  ${command.name}: ${command.description}")
     }
   }
 }
