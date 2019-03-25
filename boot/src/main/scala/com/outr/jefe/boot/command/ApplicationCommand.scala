@@ -40,69 +40,93 @@ trait ApplicationCommand extends Command {
     // TODO: JMX support
 
     Profig("arg2").opt[String] match {
-      case Some(jar) if jar.toLowerCase.endsWith(".jar") => {
-        val lastSlash = jar.lastIndexOf('/')
-        val id = explicitId.getOrElse(jar.substring(lastSlash + 1, jar.lastIndexOf('.')))
-        Some(JARApplication(
-          id = id,
-          jars = List(new File(workingDirectory, jar).getAbsolutePath),
-          mainClass = mainClass,
-          jvmArgs = jvmArgs,
-          args = args,
-          workingDirectory = workingDirectory.getAbsolutePath,
-          background = background
-        ))
-      }
-      case Some(war) if war.toLowerCase.endsWith(".war") => {
-        val lastSlash = war.lastIndexOf('/')
-        val id = explicitId.getOrElse(war.substring(lastSlash + 1, war.lastIndexOf('.')))
-        Some(WARApplication(
-          id = id,
-          war = new File(workingDirectory, war).getAbsolutePath,
-          port = port,
-          jvmArgs = jvmArgs,
-          workingDirectory = workingDirectory.getAbsolutePath,
-          background = background
-        ))
-      }
-      case Some("serve") => {
-        val id = explicitId.getOrElse(workingDirectory.getName)
-        Some(StaticSiteApplication(id, workingDirectory.getAbsolutePath, Some(HttpServerListener(host, port))))
-      }
-      case Some(applicationInfo) => {
-        val artifact: VersionedArtifact = applicationInfo match {
-          case MavenVersionedRegex(groupId, artifactId, version) => {
-            groupId % artifactId % version
-          }
-          case MavenRegex(groupId, artifactId) => {
-            val version = Profig("version").opt[String].getOrElse(
-              JefeBoot.config(s"$groupId.$artifactId.version").opt[String].getOrElse("latest.release")
-            )
-            groupId % artifactId % version
+      case Some(appType) => appType match {
+        case "jar" => {
+          val jar = Profig("arg3").as[String]
+          if (jar.toLowerCase.endsWith(".jar")) {
+            val lastSlash = jar.lastIndexOf('/')
+            val id = explicitId.getOrElse(jar.substring(lastSlash + 1, jar.lastIndexOf('.')))
+            Some(JARApplication(
+              id = id,
+              jars = List(new File(workingDirectory, jar).getAbsolutePath),
+              mainClass = mainClass,
+              jvmArgs = jvmArgs,
+              args = args,
+              workingDirectory = workingDirectory.getAbsolutePath,
+              background = background
+            ))
+          } else {
+            fail(s"Expected JAR as next argument, but got: $jar")
           }
         }
-        mainClass = mainClass.orElse(
-          JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").opt[String]
-        )
-        val id = explicitId.getOrElse(artifact.name)
-        val repositories = JefeBoot.repositories
-        Some(ArtifactApplication(
-          id = id,
-          artifacts = List(artifact),
-          repositories = repositories,
-          mainClass = mainClass,
-          jvmArgs = jvmArgs,
-          args = args,
-          workingDirectory = workingDirectory.getAbsolutePath,
-          background = background
-        ))
+        case "war" => {
+          val war = Profig("arg3").as[String]
+          if (war.toLowerCase.endsWith(".war")) {
+            val lastSlash = war.lastIndexOf('/')
+            val id = explicitId.getOrElse(war.substring(lastSlash + 1, war.lastIndexOf('.')))
+            Some(WARApplication(
+              id = id,
+              war = new File(workingDirectory, war).getAbsolutePath,
+              port = port,
+              jvmArgs = jvmArgs,
+              workingDirectory = workingDirectory.getAbsolutePath,
+              background = background
+            ))
+          } else {
+            fail(s"Expected WAR as next argument, but got: $war")
+          }
+        }
+        case "wars" => {
+          Some(MultipleWARApplication(
+            id = explicitId.getOrElse(workingDirectory.getName),
+            port = port,
+            jvmArgs = jvmArgs,
+            workingDirectory = workingDirectory.getAbsolutePath,
+            background = background
+          ))
+        }
+        case "serve" => {
+          val id = explicitId.getOrElse(workingDirectory.getName)
+          Some(StaticSiteApplication(id, workingDirectory.getAbsolutePath, Some(HttpServerListener(host, port))))
+        }
+        case "dependency" => {
+          val applicationInfo = Profig("arg3").as[String]
+          val artifact: VersionedArtifact = applicationInfo match {
+            case MavenVersionedRegex(groupId, artifactId, version) => {
+              groupId % artifactId % version
+            }
+            case MavenRegex(groupId, artifactId) => {
+              val version = Profig("version").opt[String].getOrElse(
+                JefeBoot.config(s"$groupId.$artifactId.version").opt[String].getOrElse("latest.release")
+              )
+              groupId % artifactId % version
+            }
+          }
+          mainClass = mainClass.orElse(
+            JefeBoot.config(s"${artifact.group}.${artifact.name}.mainClass").opt[String]
+          )
+          val id = explicitId.getOrElse(artifact.name)
+          val repositories = JefeBoot.repositories
+          Some(ArtifactApplication(
+            id = id,
+            artifacts = List(artifact),
+            repositories = repositories,
+            mainClass = mainClass,
+            jvmArgs = jvmArgs,
+            args = args,
+            workingDirectory = workingDirectory.getAbsolutePath,
+            background = background
+          ))
+        }
       }
-      case None => {
-        logger.info("jefe: missing argument")
-        help()
-        None
-      }
+      case None => fail("missing argument")
     }
+  }
+
+  private def fail(message: String, showHelp: Boolean = true): Option[Application] = {
+    logger.info(s"jefe: $message")
+    if (showHelp) help()
+    None
   }
 
   def loadArgs(files: File*): List[String] = {
@@ -128,10 +152,11 @@ trait ApplicationCommand extends Command {
   
   override def help(): Unit = {
     logger.info(description)
-    logger.info(s"JAR Usage: jefe $name path/to/a.jar")
-    logger.info(s"WAR Usage: jefe $name path/to/a.war")
+    logger.info(s"JAR Usage: jefe $name jar path/to/a.jar")
+    logger.info(s"WAR Usage: jefe $name war path/to/a.war")
+    logger.info(s"WARs Usage: jefe $name wars --workingDirectory=<directory for WAR sub-dirs or contexts>")
     logger.info(s"Serve a path Usage: jefe $name serve")
-    logger.info(s"Dependency Usage: jefe $name groupId:artifactId(:version)")
+    logger.info(s"Dependency Usage: jefe $name dependency groupId:artifactId(:version)")
     logger.info("")
     logger.info("Serve Help:")
     logger.info("  Starts a web server serving the content under the specified path")

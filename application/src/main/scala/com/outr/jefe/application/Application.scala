@@ -119,7 +119,7 @@ case class WARApplication(id: String,
   override protected def launcher: ProcessLauncher = {
     // Resolve
     val manager = ArtifactManager(Repositories.default, Resolver.default)
-    val artifacts = List("org.eclipse.jetty" % "jetty-runner" % "9.4.11.v20180605")
+    val artifacts = List("org.eclipse.jetty" % "jetty-runner" % WARApplication.JettyVersion)
     val jars = artifacts.flatMap { artifact =>
       manager.resolve(artifact)
     }
@@ -129,6 +129,51 @@ case class WARApplication(id: String,
 
     // Create application
     new JARLauncher(id, jars, mainClass, jvmArgs, args, jmxConfig, new File(workingDirectory), environment, loggerId, background)
+  }
+}
+
+object WARApplication {
+  val JettyVersion = "9.4.15.v20190215"
+}
+
+case class MultipleWARApplication(id: String,
+                                  port: Int,
+                                  jvmArgs: List[String] = Nil,
+                                  jmxConfig: Option[JMXConfig] = None,
+                                  workingDirectory: String = ".",
+                                  environment: Map[String, String] = Map.empty,
+                                  loggerId: Long = Launcher.loggerId,
+                                  background: Boolean = false,
+                                  enabled: Boolean = true) extends ApplicationProcess {
+  override protected def launcher: ProcessLauncher = {
+    // Resolve
+    val manager = ArtifactManager(Repositories.default, Resolver.default)
+    val artifacts = List("org.eclipse.jetty" % "jetty-runner" % WARApplication.JettyVersion)
+    val jars = artifacts.flatMap { artifact =>
+      manager.resolve(artifact)
+    }
+
+    val mainClass = Some("org.eclipse.jetty.runner.Runner")
+    val path = new File(workingDirectory)
+
+    def warFile(directory: File): Option[File] = if (directory.isFile) {
+      directory.listFiles().find(_.getName.toLowerCase.endsWith(".war"))
+    } else {
+      None
+    }
+    val warFiles = path.listFiles().toList.flatMap(warFile).flatMap { warFile =>
+      val root = warFile.getParentFile.getCanonicalPath
+      List("--path", root, warFile.getName)
+    }
+    val contextFiles = path.listFiles().toList.collect {
+      case f if f.getName.toLowerCase.endsWith("context.xml") => f.getCanonicalPath
+    }
+
+    assert(warFiles.nonEmpty || contextFiles.nonEmpty, s"No WAR directories or *context.xml files exist in: ${path.getAbsolutePath} (expects sub-directories with WAR files or context.xml files)")
+    val args = List("--port", port.toString) ::: warFiles ::: contextFiles
+
+    // Create application
+    new JARLauncher(id, jars, mainClass, jvmArgs, args, jmxConfig, path, environment, loggerId, background)
   }
 }
 
