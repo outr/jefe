@@ -13,7 +13,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time._
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scribe.Execution.global
 
 class ServerSpec extends WordSpec with Matchers with Eventually {
@@ -28,7 +28,7 @@ class ServerSpec extends WordSpec with Matchers with Eventually {
     }
     "start properly" in {
       JefeServer.isRunning should be(false)
-      JefeServer.start()
+      Await.result(JefeServer.start(), 10.seconds)
       JefeServer.isRunning should be(true)
     }
     "create app" in {

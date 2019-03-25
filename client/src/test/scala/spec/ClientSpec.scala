@@ -15,7 +15,7 @@ import io.youi.server.ServerUtil
 import org.scalatest.time.{Millis, Seconds, Span}
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
   private lazy val baseURL: URL = url"http://localhost:10565"
@@ -32,7 +32,7 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
       succeed
     }
     "start the server" in {
-      JefeServer.start()
+      Await.result(JefeServer.start(), 10.seconds)
       JefeServer.isRunning should be(true)
     }
     "create an app" in {
@@ -71,11 +71,11 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
       eventually {
         ServerUtil.isPortAvailable(8080) should be(false)
       }
-      val client = HttpClient.url(url"http://localhost:8080/hello.txt")
-      val response: HttpResponse = Await.result(client.send(), Duration.Inf)
-      response.status should be(HttpStatus.OK)
-      val content = response.content.getOrElse(fail())
-      content.length should be(13L)
+      HttpClient.url(url"http://localhost:8080/hello.txt").send().map { response =>
+        response.status should be(HttpStatus.OK)
+        val content = response.content.getOrElse(fail())
+        content.length should be(13L)
+      }
     }
     "stop the app" in {
       client.application.stop("youi-example").map { response =>

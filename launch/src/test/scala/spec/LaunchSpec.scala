@@ -18,7 +18,7 @@ class LaunchSpec extends WordSpec with Matchers with Writer {
       val launched = launcher.launch()
       val status = launched.waitForFinished()
       status should be(ProcessStoppedStatus(0))
-      records.toList.map(_.message) should be(List("Test Script 1", "Delayed...", "Finishing!"))
+      records.toList.map(_.message.plainText) should be(List("Test Script 1", "Delayed...", "Finishing!"))
     }
   }
 

@@ -36,7 +36,7 @@ val libraryManagementVersion = "1.2.4"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "3.0.3"
 val scribeVersion = "2.7.2"
-val youiVersion = "0.10.11"
+val youiVersion = "0.10.12"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
@@ -93,6 +93,15 @@ lazy val application = project.in(file("application"))
   )
   .dependsOn(resolve, launch)
 
+lazy val server = project.in(file("server"))
+  .settings(
+    name := "jefe-server",
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+    )
+  )
+  .dependsOn(core, application)
+
 lazy val client = project.in(file("client"))
   .settings(
     name := "jefe-client",
@@ -102,15 +111,6 @@ lazy val client = project.in(file("client"))
     )
   )
   .dependsOn(core, application, server)
-
-lazy val server = project.in(file("server"))
-  .settings(
-    name := "jefe-server",
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
-    )
-  )
-  .dependsOn(core, application)
 
 lazy val boot = project.in(file("boot"))
   .settings(
