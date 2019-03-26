@@ -40,10 +40,10 @@ object JefeNative {
         case ReleaseRegex(v) => v
       }.getOrElse(throw new RuntimeException(s"Unable to find release in $MavenMetadataURL"))
       Files.write(latestVersionFile, version.getBytes("UTF-8"))
-      version
+      version.trim
     } else {
       // Use cached version
-      new String(Files.readAllBytes(latestVersionFile), "UTF-8")
+      new String(Files.readAllBytes(latestVersionFile), "UTF-8").trim
     }
 
     // Download the latest assembly JAR if not already available
