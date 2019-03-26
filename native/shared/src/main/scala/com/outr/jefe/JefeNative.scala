@@ -32,28 +32,36 @@ object JefeNative {
     Files.createDirectories(directory)
 
     // Determine the latest version of Jefe from Maven Central
-    val latestVersionFile = directory.resolve("latest.version")
-    val latestVersion = if (!Files.isRegularFile(latestVersionFile) || System.currentTimeMillis() - Files.getLastModifiedTime(latestVersionFile).toMillis > CheckVersionTimeout) {
-      // Download latest version information
-      val ReleaseRegex = """.*[<]release[>](.+)[<][/]release[>]""".r
-      val version = linesFromMaven().collectFirst {
-        case ReleaseRegex(v) => v
-      }.getOrElse(throw new RuntimeException(s"Unable to find release in $MavenMetadataURL"))
-      Files.write(latestVersionFile, version.getBytes("UTF-8"))
-      version.trim
+    val versionFile = directory.resolve("version")
+    val version = if (Files.isRegularFile(versionFile)) {
+      // Use version override
+      new String(Files.readAllBytes(versionFile), "UTF-8").trim
     } else {
-      // Use cached version
-      new String(Files.readAllBytes(latestVersionFile), "UTF-8").trim
+      // Use latest version
+      val latestVersionFile = directory.resolve("latest.version")
+      if (!Files.isRegularFile(latestVersionFile) || System.currentTimeMillis() - Files.getLastModifiedTime(latestVersionFile).toMillis > CheckVersionTimeout) {
+        // Download latest version information
+        val ReleaseRegex =
+          """.*[<]release[>](.+)[<][/]release[>]""".r
+        val version = linesFromMaven().collectFirst {
+          case ReleaseRegex(v) => v
+        }.getOrElse(throw new RuntimeException(s"Unable to find release in $MavenMetadataURL"))
+        Files.write(latestVersionFile, version.getBytes("UTF-8"))
+        version.trim
+      } else {
+        // Use cached version
+        new String(Files.readAllBytes(latestVersionFile), "UTF-8").trim
+      }
     }
 
     // Download the latest assembly JAR if not already available
     val download = directory.resolve("download")
     Files.createDirectories(download)
-    val assemblyJAR = download.resolve(s"jefe-boot-assembly-$latestVersion.jar")
-    val assemblyJARTemp = download.resolve(s"jefe-boot-assembly-$latestVersion.jar.tmp")
+    val assemblyJAR = download.resolve(s"jefe-boot-assembly-$version.jar")
+    val assemblyJARTemp = download.resolve(s"jefe-boot-assembly-$version.jar.tmp")
     if (Files.notExists(assemblyJAR)) {
       Files.deleteIfExists(assemblyJARTemp)
-      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$latestVersion/jefe-boot_2.12-$latestVersion-assembly.jar"
+      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$version/jefe-boot_2.12-$version-assembly.jar"
       println(s"Downloading $jar...")
       saveURL(jar, assemblyJARTemp)
       Files.move(assemblyJARTemp, assemblyJAR)
