@@ -18,8 +18,7 @@ object Launcher {
         string("["),
         cyan(string(application)),
         string("] "),
-        message,
-        newLine
+        message
       ).map(_.format(record)))
       case None => Formatter.simple.format(record)
     }
