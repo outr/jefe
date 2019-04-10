@@ -35,8 +35,8 @@ val coursierVersion = "1.0.3"
 val libraryManagementVersion = "1.2.4"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "3.0.3"
-val scribeVersion = "2.7.2"
-val youiVersion = "0.10.12"
+val scribeVersion = "2.7.3"
+val youiVersion = "0.10.13"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
