@@ -36,7 +36,10 @@ object ServerCommand extends Command {
   def start(blocking: Boolean = Profig("blocking").opt[String].exists(_.toBoolean)): Unit = {
     assert(ServerUtil.isPortAvailable(JefeServer.port, JefeServer.host), s"${JefeServer.host}:${JefeServer.port} is already in use")
     if (blocking) {
-      JefeServer.start()
+      Await.result(JefeServer.start(), Duration.Inf)
+      while (JefeServer.isRunning) {
+        Thread.sleep(5000)
+      }
     } else {
       val version = Profig("version").as[String]("latest.release")
       val artifacts = List("com.outr" % "jefe-server_2.12" % version)
