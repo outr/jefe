@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.0-M8"
+version in ThisBuild := "2.0.0-M9-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.8"
 crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
 resolvers in ThisBuild ++= Seq(
