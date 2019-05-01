@@ -7,6 +7,7 @@ import io.youi.http.Method
 import io.youi.http.content.Content
 import io.youi.net.{ContentType, URL}
 import org.powerscala.concurrent.Time
+import org.powerscala.io._
 import profig.Profig
 import scribe.Execution.global
 import perfolation._
@@ -28,13 +29,26 @@ object HttpCommand extends Command {
       case Some(s) => ContentType.parse(s)
       case None => contentFile.map(f => ContentType.byFileName(f.getName)).getOrElse(ContentType.`text/plain`)
     }
+    val params = Profig("params").opt[String] match {
+      case Some(paramsFile) => {
+        val file = new File(workingDirectory, paramsFile)
+        val lines = IO.stream(file, new StringBuilder).toString.split('\n').map(_.trim).toList
+        val Regex = "(.+?)[=](.+)".r
+        var p = url.parameters
+        lines.foreach {
+          case Regex(key, value) => p = p.withParam(key, value)
+        }
+        p
+      }
+      case None => url.parameters
+    }
     val content = contentFile.map { file =>
       assert(file.isFile, s"Content references non-existent path: ${file.getAbsolutePath}")
       Content.file(file, contentType)
     }
     val timeout = Profig("timeout").as[Int](10).seconds
     val future = HttpClient
-      .url(url)
+      .url(url.copy(parameters = params))
       .method(method)
       .content(content)
       .send()
@@ -65,6 +79,7 @@ object HttpCommand extends Command {
     logger.info("  --method=???: The HTTP method to use")
     logger.info("  --content=???: Path to the HTTP request content (Defaults to None)")
     logger.info("  --contentType=???: Content-Type for HTTP request content (Defaults to derive from filename of content)")
+    logger.info("  --params=???: Path to a file that will be encoded into params by line")
     logger.info("  --workingDirectory=???: The base directory to use (Defaults to current directory)")
     logger.info("  --timeout=???: The number of seconds to wait for a response before timing out (Defaults to 10 seconds)")
   }
