@@ -49,6 +49,12 @@ class JefeClient(baseURL: URL, token: String) extends Interceptor {
         .restful[ApplicationActionRequest, BasicResponse](ApplicationActionRequest(applicationId))
     }
 
+    def save(): Future[BasicResponse] = {
+      client
+        .path(path"/application/save")
+        .restful[Unit, BasicResponse](())
+    }
+
     def reStart(applicationId: String): Future[BasicResponse] = {
       client
         .path(path"/application/restart")
