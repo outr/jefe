@@ -1,6 +1,7 @@
 package com.outr.jefe.launch.jmx
 
 import java.lang.management._
+import java.util.concurrent.TimeUnit
 
 import com.sun.management.OperatingSystemMXBean
 import javax.management.MBeanServerConnection
@@ -22,7 +23,7 @@ object JMXProcessMonitor {
       val mxOS = instance[OperatingSystemMXBean](ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME)
       val loadAverage = mxOS.getSystemLoadAverage
       val load = mxOS.getProcessCpuLoad
-      val time = mxOS.getProcessCpuTime
+      val time = TimeUnit.MILLISECONDS.convert(mxOS.getProcessCpuTime, TimeUnit.NANOSECONDS)
       val systemLoad = mxOS.getSystemCpuLoad
       val os = OperatingSystem(startTime, upTime, loadAverage, load, time, systemLoad)
 

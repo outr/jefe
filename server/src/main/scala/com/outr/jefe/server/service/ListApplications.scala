@@ -1,5 +1,6 @@
 package com.outr.jefe.server.service
 
+import com.outr.jefe.launch.jmx.JMXProcessMonitor
 import com.outr.jefe.model.ListResponse
 import com.outr.jefe.server.JefeServer
 import io.youi.ValidationError
@@ -13,10 +14,15 @@ object ListApplications extends Restful[Unit, ListResponse] {
     val applications = JefeServer.applications.all().map { app =>
       app.stats()
     }
-    Future.successful(RestfulResponse(ListResponse(applications, success = true, errors = Nil), HttpStatus.OK))
+    Future.successful(RestfulResponse(ListResponse(
+      stats = JMXProcessMonitor.stats(),
+      applicationStats = applications,
+      success = true,
+      errors = Nil
+    ), HttpStatus.OK))
   }
 
   override def error(errors: List[ValidationError], status: HttpStatus): RestfulResponse[ListResponse] = {
-    RestfulResponse(ListResponse(Nil, success = false, errors = errors), status)
+    RestfulResponse(ListResponse(JMXProcessMonitor.stats(), Nil, success = false, errors = errors), status)
   }
 }
