@@ -50,16 +50,7 @@ object JefeServer extends Server {
   private lazy val proxiesPath = Jefe.baseDirectory.resolve("proxies.json")
 
   override protected def init(): Future[Unit] = super.init().map { _ =>
-    Logger
-      .root
-      .clearHandlers()
-      .withHandler(formatter, minimumLevel = Some(Level.Info))
-      .withHandler(
-        formatter = formatter,
-        minimumLevel = Some(Level.Info),
-        writer = FileWriter().path(LogPath.daily("jefe"))
-      )
-      .replace()
+    initLogging()
 
     if (!persistence) scribe.warn("Server persistence is disabled")
 
@@ -72,6 +63,7 @@ object JefeServer extends Server {
             "stats" / StatsApplication,
             "list" / ListApplications,
             "stop" / StopApplication,
+            "save" / SaveApplications,
             "restart" / RestartApplication,
             "remove" / RemoveApplication
             // TODO: EnableApplication / DisableApplication
@@ -129,6 +121,17 @@ object JefeServer extends Server {
   def applications: ApplicationManager.type = ApplicationManager
 
   def main(args: Array[String]): Unit = start()
+
+  def initLogging(): Unit = Logger
+    .root
+    .clearHandlers()
+    .withHandler(formatter, minimumLevel = Some(Level.Info))
+    .withHandler(
+      formatter = formatter,
+      minimumLevel = Some(Level.Info),
+      writer = FileWriter().path(LogPath.daily("jefe", directory = Jefe.baseDirectory.toAbsolutePath.resolve("logs")))
+    )
+    .replace()
 
   override def dispose(): Unit = {
     scribe.warn("Shutting down")

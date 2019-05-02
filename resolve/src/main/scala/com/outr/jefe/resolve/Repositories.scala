@@ -47,11 +47,7 @@ object Repositories {
               val maven = (entry \\ "MavenRepository").head
               val name = (maven \\ "name").head.asString.get
               val url = (maven \\ "url").head.asString.get
-              val credentials = (maven \\ "credentials").headOption.map { creds =>
-                val user = (creds \\ "user").head.asString.get
-                val pass = (creds \\ "pass").head.asString.get
-                Credentials(user, pass)
-              }
+              val credentials = (maven \\ "credentials").headOption.flatMap(creds => JsonUtil.fromJson[Option[Credentials]](creds))
               MavenRepository(name, url, credentials)
             }
           }

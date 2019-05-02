@@ -6,6 +6,7 @@ import com.outr.jefe.Jefe
 import com.outr.jefe.boot.command._
 import com.outr.jefe.launch.Launcher
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
+import com.outr.jefe.server.JefeServer
 import org.powerscala.io.IO
 import profig.{FileType, Profig, ProfigPath}
 import scribe.{Level, Logger}
@@ -31,6 +32,7 @@ object JefeBoot {
     StartCommand,
     ListCommand,
     StopCommand,
+    SaveCommand,
     ProxyCommand,
     ServiceCommand,
     HttpCommand,
@@ -47,6 +49,7 @@ object JefeBoot {
     Profig.loadDefaults()
     Profig.merge(args)
     Jefe.baseDirectory = root
+    JefeServer.initLogging()
 
     Logger
       .root
