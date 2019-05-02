@@ -1,8 +1,10 @@
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
+
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.2.4"
-scalaVersion in ThisBuild := "2.12.5"
-crossScalaVersions in ThisBuild := List("2.12.5")
+version in ThisBuild := "2.0.0"
+scalaVersion in ThisBuild := "2.12.8"
+crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -27,97 +29,110 @@ developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
-val asmVersion = "6.1.1"
-val coursierVersion = "1.0.3"
-val libraryManagementVersion = "1.1.4"
-val circeVersion = "0.9.3"
-val packrVersion = "2.1"
-val powerScalaVersion = "2.0.5"
-val proguardVersion = "6.0.2"
-val scalaXMLVersion = "1.1.0"
-val scribeVersion = "2.3.2"
+fork in Test in ThisBuild := true
 
-val reactifyVersion = "2.3.0"
-val youiVersion = "0.9.0-M8"
+val coursierVersion = "1.0.3"
+val libraryManagementVersion = "1.2.4"
+val powerscalaVersion = "2.0.5"
+val reactifyVersion = "3.0.3"
+val scribeVersion = "2.7.3"
+val youiVersion = "0.10.14"
+val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
-  .aggregate(launch, manager, runner, optimizer, pack, server, example)
+  .aggregate(core, resolve, launch, application, client, server, boot, nativeJVM, nativeNative)
   .settings(
     publishArtifact := false
   )
 
-lazy val launch = project.in(file("launch"))
+lazy val core = project.in(file("core"))
   .settings(
-    name := "jefe-launch",
+    name := "jefe-core",
     libraryDependencies ++= Seq(
-      "com.outr" %% "reactify" % reactifyVersion,
-      "com.outr" %% "scribe-slf4j" % scribeVersion
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
+      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
+      "io.youi" %% "youi-core" % youiVersion
     )
   )
 
-lazy val manager = project.in(file("manager"))
+lazy val resolve = project.in(file("resolve"))
   .settings(
-    name := "jefe-manager",
+    name := "jefe-resolve",
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % coursierVersion,
       "io.get-coursier" %% "coursier-cache" % coursierVersion,
       "org.scala-sbt" %% "librarymanagement-core" % libraryManagementVersion,
       "org.scala-sbt" %% "librarymanagement-ivy" % libraryManagementVersion,
-      "org.powerscala" %% "powerscala-core" % powerScalaVersion,
-      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
-      "org.scala-lang.modules" %% "scala-xml" % scalaXMLVersion,
-      "com.outr" %% "scribe-slf4j" % scribeVersion
-    )
-  )
-
-lazy val runner = project.in(file("runner"))
-  .settings(
-    name := "jefe-runner",
-    assemblyJarName in assembly := "runner.jar"
-  )
-  .dependsOn(launch, manager)
-
-lazy val optimizer = project.in(file("optimizer"))
-  .settings(
-    name := "jefe-optimizer",
-    libraryDependencies ++= Seq(
-      "org.powerscala" %% "powerscala-core" % powerScalaVersion,
-      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
+      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
+      "org.powerscala" %% "powerscala-io" % powerscalaVersion,
       "com.outr" %% "scribe-slf4j" % scribeVersion,
-      "org.ow2.asm" % "asm" % asmVersion
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
+  .dependsOn(core)
 
-lazy val pack = project.in(file("pack"))
+lazy val launch = project.in(file("launch"))
   .settings(
-    name := "jefe-pack",
+    name := "jefe-launch",
     libraryDependencies ++= Seq(
-      "com.bladecoder.packr" % "packr" % packrVersion,
-      "net.sf.proguard" % "proguard-base" % proguardVersion
+      "com.outr" %% "scribe-slf4j" % scribeVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )
   )
-  .dependsOn(runner, optimizer)
+  .dependsOn(core)
+
+lazy val application = project.in(file("application"))
+  .settings(
+    name := "jefe-application",
+    libraryDependencies ++= Seq(
+      "com.outr" %% "reactify" % reactifyVersion,
+      "io.youi" %% "youi-client" % youiVersion,
+      "io.youi" %% "youi-server-undertow" % youiVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+    )
+  )
+  .dependsOn(resolve, launch)
 
 lazy val server = project.in(file("server"))
   .settings(
     name := "jefe-server",
-    fork in run := true,
-    assemblyJarName := s"${name.value}-${version.value}.jar",
     libraryDependencies ++= Seq(
-      "io.youi" %% "youi-server-undertow" % youiVersion,
-      "io.youi" %% "youi-client" % youiVersion,
-      "org.powerscala" %% "powerscala-concurrent" % powerScalaVersion
-    ),
-    libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core",
-      "io.circe" %% "circe-generic",
-      "io.circe" %% "circe-parser"
-    ).map(_ % circeVersion)
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+    )
   )
-  .dependsOn(runner)
+  .dependsOn(core, application)
 
-lazy val example = project.in(file("example"))
+lazy val client = project.in(file("client"))
   .settings(
-    name := "jefe-example"
+    name := "jefe-client",
+    libraryDependencies ++= Seq(
+      "io.youi" %% "youi-client" % youiVersion,
+      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+    )
   )
-  .dependsOn(launch, manager)
+  .dependsOn(core, application, server)
+
+lazy val boot = project.in(file("boot"))
+  .settings(
+    name := "jefe-boot",
+    fork := true,
+    artifact in (Compile, assembly) := {
+      val art = (artifact in (Compile, assembly)).value
+      art.withClassifier(Some("assembly"))
+    },
+    addArtifact(artifact in (Compile, assembly), assembly)
+  )
+  .dependsOn(client, server)
+
+lazy val native = crossProject(JVMPlatform, NativePlatform).in(file("native"))
+  .settings(
+    name := "jefe-native",
+    scalaVersion := "2.11.12",
+    crossScalaVersions := List("2.11.12")
+  )
+  .jvmSettings(
+    assemblyJarName in assembly := "jefe-native.jar"
+  )
+
+lazy val nativeJVM = native.jvm
+lazy val nativeNative = native.native
