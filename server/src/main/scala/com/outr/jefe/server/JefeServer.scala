@@ -15,8 +15,25 @@ import io.youi.Unique
 
 import scala.concurrent.Future
 import scribe.Execution.global
+import scribe.{Level, LogRecord, Logger, MDC}
+import scribe.format.{Formatter, cyan, message, string}
+import scribe.output.{CompositeOutput, LogOutput}
+import scribe.writer.FileWriter
+import scribe.writer.file.LogPath
 
 object JefeServer extends Server {
+  private val formatter = new Formatter {
+    override def format[M](record: LogRecord[M]): LogOutput = MDC.get("application") match {
+      case Some(application) => new CompositeOutput(List(
+        string("["),
+        cyan(string(application)),
+        string("] "),
+        message
+      ).map(_.format(record)))
+      case None => Formatter.simple.format(record)
+    }
+  }
+
   Jefe.baseDirectory = Paths.get(System.getProperty("user.home")).resolve(".jefe")
   Profig.defaults(List("--listeners.http.port", "10565"))
 
@@ -33,6 +50,17 @@ object JefeServer extends Server {
   private lazy val proxiesPath = Jefe.baseDirectory.resolve("proxies.json")
 
   override protected def init(): Future[Unit] = super.init().map { _ =>
+    Logger
+      .root
+      .clearHandlers()
+      .withHandler(formatter, minimumLevel = Some(Level.Info))
+      .withHandler(
+        formatter = formatter,
+        minimumLevel = Some(Level.Info),
+        writer = FileWriter().path(LogPath.daily("jefe"))
+      )
+      .replace()
+
     if (!persistence) scribe.warn("Server persistence is disabled")
 
     handler(
