@@ -113,6 +113,11 @@ lazy val client = project.in(file("client"))
   .dependsOn(core, application, server)
 
 lazy val boot = project.in(file("boot"))
+  .enablePlugins(BuildInfoPlugin)
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "com.outr.jefe"
+  )
   .settings(
     name := "jefe-boot",
     fork := true,
