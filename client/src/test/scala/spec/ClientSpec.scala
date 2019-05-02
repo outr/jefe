@@ -53,7 +53,7 @@ class ClientSpec extends AsyncWordSpec with Matchers with Eventually {
       badClient.application.start("youi-example").map { response =>
         response.success should be(false)
         response.errors should be(List(ValidationError(
-          message = "Invalid request, bad jefe.token specified",
+          message = "Invalid request, bad jefe.token specified (password)",
           code = SecurityFilter.FailureCode,
           status = HttpStatus.Forbidden
         )))
