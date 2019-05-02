@@ -29,6 +29,7 @@ object JefeBoot {
     RepositoryCommand,
     ServerCommand,
     StartCommand,
+    ListCommand,
     StopCommand,
     ProxyCommand,
     ServiceCommand,

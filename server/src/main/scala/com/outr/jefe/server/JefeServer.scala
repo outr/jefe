@@ -22,7 +22,7 @@ object JefeServer extends Server {
 
   val host: String = Profig("listeners.http.host").as[String]("127.0.0.1")
   val port: Int = Profig("listeners.http.port").as[Int]
-  val token: String = Profig("jefe.token").opt[String].getOrElse {
+  lazy val token: String = Profig("jefe.token").opt[String].getOrElse {
     val generated = Unique(length = 8, characters = Unique.Readable)
     scribe.warn(s"No jefe.token specified in configuration, so a runtime value was generated: $generated")
     generated
@@ -42,6 +42,7 @@ object JefeServer extends Server {
             "create" / CreateApplication,
             "start" / StartApplication,
             "stats" / StatsApplication,
+            "list" / ListApplications,
             "stop" / StopApplication,
             "restart" / RestartApplication,
             "remove" / RemoveApplication

@@ -1,18 +1,22 @@
 package com.outr.jefe.client
 
 import com.outr.jefe.application.Application
-import com.outr.jefe.model.{ApplicationActionRequest, BasicResponse, StatsResponse}
+import com.outr.jefe.model.{ApplicationActionRequest, BasicResponse, ListResponse, StatsResponse}
 import com.outr.jefe.server.ProxyConfig
 import io.youi.client.HttpClient
 import io.youi.client.intercept.Interceptor
-import io.youi.http.{HttpRequest, HttpResponse}
+import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
 import io.youi.net._
 
 import scala.concurrent.Future
 import scribe.Execution.global
 
 class JefeClient(baseURL: URL, token: String) extends Interceptor {
-  private lazy val client = HttpClient.header("jefe.token", token).url(baseURL).noFailOnHttpStatus
+  private lazy val client = HttpClient
+    .header("jefe.token", token)
+    .url(baseURL)
+    .noFailOnHttpStatus
+    .interceptor(this)
 
   object application {
     def create(application: Application): Future[BasicResponse] = {
@@ -31,6 +35,12 @@ class JefeClient(baseURL: URL, token: String) extends Interceptor {
       client
         .path(path"/application/stats")
         .restful[ApplicationActionRequest, StatsResponse](ApplicationActionRequest(applicationId))
+    }
+
+    def list(): Future[ListResponse] = {
+      client
+        .path(path"/application/list")
+        .restful[Unit, ListResponse](())
     }
 
     def stop(applicationId: String): Future[BasicResponse] = {
@@ -71,13 +81,13 @@ class JefeClient(baseURL: URL, token: String) extends Interceptor {
       .restful[Unit, BasicResponse](())
   }
 
-  override def before(request: HttpRequest): Future[HttpRequest] = {
-    scribe.info(s"Before: ${request.content.map(_.asString)}")
-    Future.successful(request)
-  }
+  override def before(request: HttpRequest): Future[HttpRequest] = Future.successful(request)
 
   override def after(request: HttpRequest, response: HttpResponse): Future[HttpResponse] = {
-    scribe.info(s"After (${response.status}): ${response.content.map(_.asString)}")
+    if (response.status != HttpStatus.OK) {
+      scribe.warn(s"[${request.url}] ${request.method}: ${request.content.map(_.asString).getOrElse("")}")
+      scribe.warn(s"[${request.url.decoded}] ${response.status.message} (${response.status.code}) Received: ${response.content.map(_.asString).getOrElse("")}")
+    }
     Future.successful(response)
   }
 }

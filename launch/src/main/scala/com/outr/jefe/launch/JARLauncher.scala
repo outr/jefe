@@ -4,8 +4,6 @@ import java.io.{File, FileInputStream}
 import java.util.jar.JarInputStream
 
 import com.outr.jefe.launch.jmx.JMXConfig
-import scribe.Logger
-
 import scala.collection.mutable.ListBuffer
 
 class JARLauncher(name: String,
@@ -13,7 +11,7 @@ class JARLauncher(name: String,
                   val mainClass: Option[String] = None,
                   val jvmArgs: List[String] = Nil,        // TODO: support typed entries to replace String
                   val args: List[String] = Nil,           // TODO: support typed entries to replace String
-                  val jmxConfig: Option[JMXConfig] = None,
+                  val jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                   workingDirectory: File = new File("."),
                   environment: Map[String, String] = Map.empty,
                   loggerId: Long = Launcher.loggerId,

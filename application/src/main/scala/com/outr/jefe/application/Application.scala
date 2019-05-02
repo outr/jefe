@@ -3,7 +3,7 @@ package com.outr.jefe.application
 import java.io.File
 
 import com.outr.jefe.launch._
-import com.outr.jefe.launch.jmx.{JMXConfig, ProcessStats}
+import com.outr.jefe.launch.jmx.{ApplicationStats, JMXConfig}
 import com.outr.jefe.resolve.{ArtifactManager, Repositories, Resolver, VersionedArtifact}
 import reactify.Var
 import com.outr.jefe.resolve._
@@ -15,7 +15,7 @@ sealed trait Application {
   def start(): Unit
   def isRunning: Boolean
   def restart(force: Boolean): Unit
-  def stats(): Option[ProcessStats]
+  def stats(): ApplicationStats
   def stop(force: Boolean): Unit
 }
 
@@ -37,7 +37,13 @@ sealed trait ApplicationProcess extends Application {
 
   def waitForFinished(): ProcessStatus = launched().map(_.waitForFinished()).getOrElse(throw new RuntimeException("Not started!"))
 
-  override def stats(): Option[ProcessStats] = launched().flatMap(_.stats())
+  override def stats(): ApplicationStats = ApplicationStats(
+    name = id,
+    enabled = enabled,
+    running = isRunning,
+    forked = true,
+    process = launched().flatMap(_.stats())
+  )
 
   override def stop(force: Boolean): Unit = {
     launched().foreach { l =>
@@ -63,7 +69,7 @@ case class JARApplication(id: String,
                           mainClass: Option[String] = None,
                           jvmArgs: List[String] = Nil,
                           args: List[String] = Nil,
-                          jmxConfig: Option[JMXConfig] = None,
+                          jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
                           loggerId: Long = Launcher.loggerId,
@@ -83,7 +89,7 @@ case class ArtifactApplication(id: String,
                                mainClass: Option[String] = None,
                                jvmArgs: List[String] = Nil,
                                args: List[String] = Nil,
-                               jmxConfig: Option[JMXConfig] = None,
+                               jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                                workingDirectory: String = ".",
                                environment: Map[String, String] = Map.empty,
                                loggerId: Long = Launcher.loggerId,
@@ -110,7 +116,7 @@ case class WARApplication(id: String,
                           war: String,
                           port: Int,
                           jvmArgs: List[String] = Nil,
-                          jmxConfig: Option[JMXConfig] = None,
+                          jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
                           loggerId: Long = Launcher.loggerId,
@@ -139,7 +145,7 @@ object WARApplication {
 case class MultipleWARApplication(id: String,
                                   port: Int,
                                   jvmArgs: List[String] = Nil,
-                                  jmxConfig: Option[JMXConfig] = None,
+                                  jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                                   workingDirectory: String = ".",
                                   environment: Map[String, String] = Map.empty,
                                   loggerId: Long = Launcher.loggerId,
@@ -198,7 +204,13 @@ case class StaticSiteApplication(id: String,
 
   override def restart(force: Boolean): Unit = server.restart()
 
-  override def stats(): Option[ProcessStats] = None
+  override def stats(): ApplicationStats = ApplicationStats(
+    name = id,
+    enabled = enabled,
+    running = isRunning,
+    forked = false,
+    process = None
+  )
 
   override def stop(force: Boolean): Unit = server.stop()
 }

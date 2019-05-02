@@ -13,7 +13,7 @@ object StatsApplication extends Restful[ApplicationActionRequest, StatsResponse]
     val response = JefeServer.applications.byId(request.applicationId) match {
       case Some(application) => {
         val stats = application.stats()
-        RestfulResponse(StatsResponse(stats = stats, errors = Nil), HttpStatus.OK)
+        RestfulResponse(StatsResponse(stats = Some(stats), errors = Nil), HttpStatus.OK)
       }
       case None => {
         RestfulResponse(StatsResponse(stats = None, errors = List(ValidationError(s"Application not found by id: ${request.applicationId}"))), HttpStatus.ExpectationFailed)

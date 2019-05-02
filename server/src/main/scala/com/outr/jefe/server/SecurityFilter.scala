@@ -15,11 +15,12 @@ object SecurityFilter extends ConnectionFilter {
   override def filter(connection: HttpConnection): Future[FilterResponse] = {
     val token = connection.request.headers.first(HeaderKey("jefe.token")).getOrElse("")
     if (JefeServer.token != token) {
+      scribe.warn(s"Security failure, invalid token specified: $token (actual token: ${JefeServer.token})")
       val ve = ValidationError(
         message = if (token.isEmpty) {
           "Invalid request, no jefe.token specified in the header"
         } else {
-          "Invalid request, bad jefe.token specified"
+          s"Invalid request, bad jefe.token specified ($token)"
         },
         code = FailureCode,
         status = HttpStatus.Forbidden

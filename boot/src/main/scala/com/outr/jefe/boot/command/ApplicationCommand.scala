@@ -14,7 +14,7 @@ trait ApplicationCommand extends Command {
   private val MavenVersionedRegex = """(.+)[:](.+)[:](.+)""".r
   private val MavenRegex = """(.+)[:](.+)""".r
 
-  override final def execute(): Unit = loadApplication().foreach(execute)
+  override def execute(): Unit = loadApplication().foreach(execute)
 
   protected def allowBackground: Boolean = true
 
@@ -118,6 +118,7 @@ trait ApplicationCommand extends Command {
             background = background
           ))
         }
+        case _ => None
       }
       case None => fail("missing argument")
     }
