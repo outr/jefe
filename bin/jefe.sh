@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-java -jar jefe.jar "$@"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+java -jar $DIR/jefe.jar "$@"
