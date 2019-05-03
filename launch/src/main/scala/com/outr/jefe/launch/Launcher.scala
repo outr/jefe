@@ -8,12 +8,3 @@ trait Launcher {
   def logger: Logger = Logger(loggerId)
   def launch(): Launched
 }
-
-object Launcher {
-  val loggerId: Long = Logger
-    .empty
-    .replace()
-    .id
-
-  def logger: Logger = Logger(loggerId)
-}

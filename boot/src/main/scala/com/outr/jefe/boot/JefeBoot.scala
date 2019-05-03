@@ -4,14 +4,10 @@ import java.nio.file.{Files, Paths}
 
 import com.outr.jefe.{BuildInfo, Jefe}
 import com.outr.jefe.boot.command._
-import com.outr.jefe.launch.Launcher
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import com.outr.jefe.server.JefeServer
 import org.powerscala.io.IO
 import profig.{FileType, Profig, ProfigPath}
-import scribe.{Level, Logger}
-import scribe.writer.FileWriter
-import scribe.writer.file.LogPath
 
 object JefeBoot {
   private lazy val userHome = Paths.get(System.getProperty("user.home"))
@@ -51,27 +47,19 @@ object JefeBoot {
     Jefe.baseDirectory = root
     JefeServer.initLogging()
 
-    Logger
-      .root
-      .clearHandlers()
-      .withHandler(
-        minimumLevel = Some(Level.Info),
-        writer = FileWriter().path(LogPath.daily("jefe", directory = Jefe.baseDirectory.resolve("logs")))
-      )
-
     scribe.info(s"Jefe version ${BuildInfo.version}")
     scribe.info("------------------------")
     Profig("arg1").opt[String] match {
       case Some(commandName) => commandsMap.get(commandName) match {
         case Some(command) => command.execute()
         case None => {
-          Launcher.logger.info(s"Unknown command: $commandName")
-          Launcher.logger.info("")
+          scribe.info(s"Unknown command: $commandName")
+          scribe.info("")
           help()
         }
       }
       case None => {
-        Launcher.logger.info("jefe: missing command")
+        scribe.info("jefe: missing command")
         help()
       }
     }
@@ -89,11 +77,11 @@ object JefeBoot {
   }
 
   def help(): Unit = {
-    Launcher.logger.info("Usage: jefe [command] [options]")
-    Launcher.logger.info("")
-    Launcher.logger.info("Valid Commands:")
+    scribe.info("Usage: jefe [command] [options]")
+    scribe.info("")
+    scribe.info("Valid Commands:")
     commands.foreach { command =>
-      Launcher.logger.info(s"  ${command.name}: ${command.description}")
+      scribe.info(s"  ${command.name}: ${command.description}")
     }
   }
 }

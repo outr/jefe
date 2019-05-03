@@ -14,7 +14,7 @@ class JARLauncher(name: String,
                   val jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                   workingDirectory: File = new File("."),
                   environment: Map[String, String] = Map.empty,
-                  loggerId: Long = Launcher.loggerId,
+                  loggerId: Long = scribe.Logger.rootId,
                   background: Boolean = false)
   extends ProcessLauncher(
     name = name,

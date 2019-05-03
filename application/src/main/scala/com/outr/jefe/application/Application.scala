@@ -58,7 +58,7 @@ case class ProcessApplication(id: String,
                               commands: List[String],
                               workingDirectory: String = ".",
                               environment: Map[String, String] = Map.empty,
-                              loggerId: Long = Launcher.loggerId,
+                              loggerId: Long = scribe.Logger.rootId,
                               background: Boolean = false,
                               enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = new ProcessLauncher(id, commands, new File(workingDirectory), environment, loggerId, background)
@@ -72,7 +72,7 @@ case class JARApplication(id: String,
                           jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
-                          loggerId: Long = Launcher.loggerId,
+                          loggerId: Long = scribe.Logger.rootId,
                           background: Boolean = false,
                           enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
@@ -92,7 +92,7 @@ case class ArtifactApplication(id: String,
                                jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                                workingDirectory: String = ".",
                                environment: Map[String, String] = Map.empty,
-                               loggerId: Long = Launcher.loggerId,
+                               loggerId: Long = scribe.Logger.rootId,
                                background: Boolean = false,
                                enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
@@ -119,7 +119,7 @@ case class WARApplication(id: String,
                           jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                           workingDirectory: String = ".",
                           environment: Map[String, String] = Map.empty,
-                          loggerId: Long = Launcher.loggerId,
+                          loggerId: Long = scribe.Logger.rootId,
                           background: Boolean = false,
                           enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
@@ -148,7 +148,7 @@ case class MultipleWARApplication(id: String,
                                   jmxConfig: Option[JMXConfig] = Some(JMXConfig()),
                                   workingDirectory: String = ".",
                                   environment: Map[String, String] = Map.empty,
-                                  loggerId: Long = Launcher.loggerId,
+                                  loggerId: Long = scribe.Logger.rootId,
                                   background: Boolean = false,
                                   enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {

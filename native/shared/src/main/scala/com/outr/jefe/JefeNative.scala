@@ -2,6 +2,10 @@ package com.outr.jefe
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
+
+import scribe.Logger
+import scribe.format._
+
 import scala.collection.JavaConverters._
 
 object JefeNative {
@@ -26,6 +30,8 @@ object JefeNative {
   }
 
   def main(args: Array[String]): Unit = {
+    Logger.root.clearHandlers().withHandler(formatter"[jefe-native] $message$mdc").replace()
+
     // Determine the home directory for Jefe
     val userHome = Paths.get(System.getProperty("user.home"))
     val directory = userHome.resolve(".jefe")
@@ -35,20 +41,22 @@ object JefeNative {
     val versionFile = directory.resolve("version")
     val version = if (Files.isRegularFile(versionFile)) {
       // Use version override
+      scribe.info("version file exists, using it instead of latest.version...")
       new String(Files.readAllBytes(versionFile), "UTF-8").trim
     } else {
       // Use latest version
       val latestVersionFile = directory.resolve("latest.version")
       if (!Files.isRegularFile(latestVersionFile) || System.currentTimeMillis() - Files.getLastModifiedTime(latestVersionFile).toMillis > CheckVersionTimeout) {
+        scribe.info("Checking for new version of Jefe...")
         // Download latest version information
-        val ReleaseRegex =
-          """.*[<]release[>](.+)[<][/]release[>]""".r
+        val ReleaseRegex = """.*[<]release[>](.+)[<][/]release[>]""".r
         val version = linesFromMaven().collectFirst {
           case ReleaseRegex(v) => v
         }.getOrElse(throw new RuntimeException(s"Unable to find release in $MavenMetadataURL"))
         Files.write(latestVersionFile, version.getBytes("UTF-8"))
         version.trim
       } else {
+        scribe.info("Using cached version of Jefe...")
         // Use cached version
         new String(Files.readAllBytes(latestVersionFile), "UTF-8").trim
       }
@@ -60,11 +68,13 @@ object JefeNative {
     val assemblyJAR = download.resolve(s"jefe-boot-assembly-$version.jar")
     val assemblyJARTemp = download.resolve(s"jefe-boot-assembly-$version.jar.tmp")
     if (Files.notExists(assemblyJAR)) {
+      scribe.info(s"Downloading ${assemblyJAR.getFileName}...")
       Files.deleteIfExists(assemblyJARTemp)
       val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$version/jefe-boot_2.12-$version-assembly.jar"
       println(s"Downloading $jar...")
       saveURL(jar, assemblyJARTemp)
       Files.move(assemblyJARTemp, assemblyJAR)
+      scribe.info(s"${assemblyJAR.getFileName} downloaded successfully")
     }
 
     // Run the jar

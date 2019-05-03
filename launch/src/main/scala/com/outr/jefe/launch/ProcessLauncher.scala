@@ -1,18 +1,17 @@
 package com.outr.jefe.launch
 
 import java.io.File
-import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Files, Path}
 
 import com.outr.jefe.Jefe
-import scribe.Logger
 import scala.collection.JavaConverters._
 
 class ProcessLauncher(val name: String,
                       val commands: List[String],
                       val workingDirectory: File = new File("."),
                       val environment: Map[String, String] = Map.empty,
-                      val loggerId: Long = Launcher.loggerId,
+                      val loggerId: Long = scribe.Logger.rootId,
                       val background: Boolean = false) extends Launcher {
   private lazy val script = Files.createTempFile(Jefe.baseDirectory, "script", ".sh")
 

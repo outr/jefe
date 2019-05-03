@@ -133,7 +133,8 @@ lazy val native = crossProject(JVMPlatform, NativePlatform).in(file("native"))
   .settings(
     name := "jefe-native",
     scalaVersion := "2.11.12",
-    crossScalaVersions := List("2.11.12")
+    crossScalaVersions := List("2.11.12"),
+    libraryDependencies += "com.outr" %%% "scribe" % scribeVersion
   )
   .jvmSettings(
     assemblyJarName in assembly := "jefe-native.jar"
