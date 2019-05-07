@@ -15,7 +15,7 @@ object JefeNative {
   // TODO: support other paths
   private lazy val curl = new File("/usr/bin/curl")
   private lazy val wget = new File("/usr/bin/wget")
-  private lazy val nohup = new File("/usr/bin/nohup")
+  private lazy val authBind = new File("/usr/bin/authbind")
 
   // Determine the location of JRE
   private lazy val javaHome = Paths.get(determineJavaHome())
@@ -31,6 +31,7 @@ object JefeNative {
 
   def main(args: Array[String]): Unit = {
     Logger.root.clearHandlers().withHandler(formatter"[jefe-native] $message$mdc").replace()
+    val enableAuthBind = args.contains("--authBind=true")
 
     // Determine the home directory for Jefe
     val userHome = Paths.get(System.getProperty("user.home"))
@@ -78,7 +79,7 @@ object JefeNative {
     }
 
     // Run the jar
-    run(assemblyJAR, args.toList)
+    run(assemblyJAR, enableAuthBind, args.toList)
   }
 
   private def linesFromMaven(): List[String] = {
@@ -112,8 +113,13 @@ object JefeNative {
     }
   }
 
-  private def run(jar: Path, args: List[String]): Unit = {
-    val command = List(
+  private def run(jar: Path, authBind: Boolean, args: List[String]): Unit = {
+    val prefix = if (authBind) {
+      List(this.authBind.getAbsolutePath)
+    } else {
+      Nil
+    }
+    val command = prefix ::: List(
       java.toAbsolutePath.toString,
       "-jar",
       jar.toAbsolutePath.toString

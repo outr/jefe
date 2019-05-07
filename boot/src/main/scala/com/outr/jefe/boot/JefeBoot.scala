@@ -7,7 +7,7 @@ import com.outr.jefe.boot.command._
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import com.outr.jefe.server.JefeServer
 import org.powerscala.io.IO
-import profig.{FileType, Profig, ProfigPath}
+import profig.{FileType, Profig, ProfigLookupPath, ProfigPath}
 
 object JefeBoot {
   private lazy val userHome = Paths.get(System.getProperty("user.home"))
@@ -42,6 +42,10 @@ object JefeBoot {
       config.merge(file, FileType.Json)
     }
 
+    // Load config files in root directory
+    Profig.load(ProfigLookupPath.defaults.map { p =>
+      p.copy(path = root.resolve(p.path).toFile.getAbsolutePath)
+    }: _*)
     Profig.loadDefaults()
     Profig.merge(args)
     Jefe.baseDirectory = root
@@ -72,12 +76,11 @@ object JefeBoot {
     IO.stream(jsonString, configPath.toFile)
   }
 
-  def version(): Unit = {
-
-  }
-
   def help(): Unit = {
     scribe.info("Usage: jefe [command] [options]")
+    scribe.info("")
+    scribe.info("Parameters:")
+    scribe.info("\t--authBind=true: to enable authbind on this run of jefe")
     scribe.info("")
     scribe.info("Valid Commands:")
     commands.foreach { command =>
