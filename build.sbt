@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.3"
+version in ThisBuild := "2.0.4-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.8"
 crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
 resolvers in ThisBuild ++= Seq(
@@ -36,7 +36,7 @@ val libraryManagementVersion = "1.2.4"
 val powerscalaVersion = "2.0.5"
 val reactifyVersion = "3.0.3"
 val scribeVersion = "2.7.3"
-val youiVersion = "0.10.14"
+val youiVersion = "0.10.15"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))

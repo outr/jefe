@@ -81,6 +81,7 @@ object JefeBoot {
     scribe.info("")
     scribe.info("Parameters:")
     scribe.info("\t--authBind=true: to enable authbind on this run of jefe")
+    scribe.info("\t--log=verbose: to enable verbose logging")
     scribe.info("")
     scribe.info("Valid Commands:")
     commands.foreach { command =>

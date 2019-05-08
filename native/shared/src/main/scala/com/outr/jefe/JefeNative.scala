@@ -31,7 +31,6 @@ object JefeNative {
 
   def main(args: Array[String]): Unit = {
     Logger.root.clearHandlers().withHandler(formatter"[jefe-native] $message$mdc").replace()
-    val enableAuthBind = args.contains("--authBind=true")
 
     // Determine the home directory for Jefe
     val userHome = Paths.get(System.getProperty("user.home"))
@@ -79,7 +78,7 @@ object JefeNative {
     }
 
     // Run the jar
-    run(assemblyJAR, enableAuthBind, args.toList)
+    run(assemblyJAR, args.toList)
   }
 
   private def linesFromMaven(): List[String] = {
@@ -113,8 +112,9 @@ object JefeNative {
     }
   }
 
-  private def run(jar: Path, authBind: Boolean, args: List[String]): Unit = {
-    val prefix = if (authBind) {
+  private def run(jar: Path, args: List[String]): Unit = {
+    val enableAuthBind = args.contains("--authBind=true")
+    val prefix = if (enableAuthBind) {
       List(this.authBind.getAbsolutePath)
     } else {
       Nil
@@ -124,6 +124,9 @@ object JefeNative {
       "-jar",
       jar.toAbsolutePath.toString
     ) ::: args
+    if (args.contains("--log=verbose")) {
+      scribe.info(s"Running ${command.mkString(" ")}...")
+    }
     val pb = new ProcessBuilder(command: _*)
     val process = pb.inheritIO().start()
     val exitValue = process.waitFor()
