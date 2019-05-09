@@ -1,12 +1,13 @@
 package com.outr.jefe.client
 
+import com.outr.jefe.Paths
 import com.outr.jefe.application.Application
 import com.outr.jefe.model.{ApplicationActionRequest, BasicResponse, ListResponse, StatsResponse}
 import com.outr.jefe.server.ProxyConfig
 import io.youi.client.HttpClient
 import io.youi.client.intercept.Interceptor
 import io.youi.http.{HttpRequest, HttpResponse, HttpStatus}
-import io.youi.net._
+import io.youi.net.URL
 
 import scala.concurrent.Future
 import scribe.Execution.global
@@ -21,49 +22,49 @@ class JefeClient(baseURL: URL, token: String) extends Interceptor {
   object application {
     def create(application: Application): Future[BasicResponse] = {
       client
-        .path(path"/application/create")
+        .path(Paths.application.create)
         .restful[Application, BasicResponse](application)
     }
 
     def start(applicationId: String): Future[BasicResponse] = {
       client
-        .path(path"/application/start")
+        .path(Paths.application.start)
         .restful[ApplicationActionRequest, BasicResponse](ApplicationActionRequest(applicationId))
     }
 
     def stats(applicationId: String): Future[StatsResponse] = {
       client
-        .path(path"/application/stats")
+        .path(Paths.application.stats)
         .restful[ApplicationActionRequest, StatsResponse](ApplicationActionRequest(applicationId))
     }
 
     def list(): Future[ListResponse] = {
       client
-        .path(path"/application/list")
+        .path(Paths.application.list)
         .restful[Unit, ListResponse](())
     }
 
     def stop(applicationId: String): Future[BasicResponse] = {
       client
-        .path(path"/application/stop")
+        .path(Paths.application.stop)
         .restful[ApplicationActionRequest, BasicResponse](ApplicationActionRequest(applicationId))
     }
 
     def save(): Future[BasicResponse] = {
       client
-        .path(path"/application/save")
+        .path(Paths.application.save)
         .restful[Unit, BasicResponse](())
     }
 
     def reStart(applicationId: String): Future[BasicResponse] = {
       client
-        .path(path"/application/restart")
+        .path(Paths.application.restart)
         .restful[ApplicationActionRequest, BasicResponse](ApplicationActionRequest(applicationId))
     }
 
     def remove(applicationId: String): Future[BasicResponse] = {
       client
-        .path(path"/application/remove")
+        .path(Paths.application.remove)
         .restful[ApplicationActionRequest, BasicResponse](ApplicationActionRequest(applicationId))
     }
   }
@@ -71,19 +72,19 @@ class JefeClient(baseURL: URL, token: String) extends Interceptor {
   object proxy {
     def add(config: ProxyConfig): Future[BasicResponse] = {
       client
-        .path(path"/proxy/add")
+        .path(Paths.proxy.add)
         .restful[ProxyConfig, BasicResponse](config)
     }
     def remove(config: ProxyConfig): Future[BasicResponse] = {
       client
-        .path(path"/proxy/remove")
+        .path(Paths.proxy.remove)
         .restful[ProxyConfig, BasicResponse](config)
     }
   }
 
   def stop(): Future[BasicResponse] = {
     client
-      .path(path"/stop")
+      .path(Paths.stop)
       .restful[Unit, BasicResponse](())
   }
 

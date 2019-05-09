@@ -124,9 +124,7 @@ object JefeNative {
       "-jar",
       jar.toAbsolutePath.toString
     ) ::: args
-    if (args.contains("--log=verbose")) {
-      scribe.info(s"Running ${command.mkString(" ")}...")
-    }
+    scribe.info(s"Running ${command.mkString(" ")}...")
     val pb = new ProcessBuilder(command: _*)
     val process = pb.inheritIO().start()
     val exitValue = process.waitFor()

@@ -1,12 +1,11 @@
 package com.outr.jefe.server
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Paths => NIOPaths}
 
-import com.outr.jefe.Jefe
+import com.outr.jefe.{Jefe, Paths}
 import com.outr.jefe.application.{Application, ApplicationManager}
 import com.outr.jefe.server.service._
 import io.circe.Printer
-import io.youi.http.Method
 import io.youi.server.Server
 import profig.{JsonUtil, Profig}
 import io.youi.server.dsl._
@@ -34,13 +33,13 @@ object JefeServer extends Server {
     }
   }
 
-  Jefe.baseDirectory = Paths.get(System.getProperty("user.home")).resolve(".jefe")
+  Jefe.baseDirectory = NIOPaths.get(System.getProperty("user.home")).resolve(".jefe")
   Profig.defaults(List("--listeners.http.port", "10565"))
 
   val host: String = Profig("listeners.http.host").as[String]("127.0.0.1")
   val port: Int = Profig("listeners.http.port").as[Int]
   lazy val token: String = Profig("jefe.token").opt[String].getOrElse {
-    val generated = Unique(length = 8, characters = Unique.Readable)
+    val generated = Unique(length = 16)
     scribe.warn(s"No jefe.token specified in configuration, so a runtime value was generated: $generated")
     generated
   }
@@ -56,23 +55,23 @@ object JefeServer extends Server {
 
     handler(
       filters(
-        SecurityFilter / Method.Post / List(
-          "application" / List(
-            "create" / CreateApplication,
-            "start" / StartApplication,
-            "stats" / StatsApplication,
-            "list" / ListApplications,
-            "stop" / StopApplication,
-            "save" / SaveApplications,
-            "restart" / RestartApplication,
-            "remove" / RemoveApplication
-            // TODO: EnableApplication / DisableApplication
-          ),
-          "proxy" / List(
-            "add" / AddProxy,
-            "remove" / RemoveProxy
-          ),
-          "stop" / StopServer
+        SecurityFilter / List(
+          // Application
+          Paths.application.create / CreateApplication,
+          Paths.application.start / StartApplication,
+          Paths.application.stats / StatsApplication,
+          Paths.application.list / ListApplications,
+          Paths.application.stop / StopApplication,
+          Paths.application.save / SaveApplications,
+          Paths.application.restart / RestartApplication,
+          Paths.application.remove / RemoveApplication,
+          // TODO: EnableApplication / DisableApplication
+          // Proxy
+          Paths.proxy.add / AddProxy,
+          Paths.proxy.remove / RemoveProxy,
+          // Server
+          Paths.version / VersionServer,
+          Paths.stop / StopServer
         )
       )
     )

@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.4"
+version in ThisBuild := "2.0.5-SNAPSHOT"
 scalaVersion in ThisBuild := "2.12.8"
 crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
 resolvers in ThisBuild ++= Seq(
@@ -46,8 +46,11 @@ lazy val root = project.in(file("."))
   )
 
 lazy val core = project.in(file("core"))
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "jefe-core",
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "com.outr.jefe",
     libraryDependencies ++= Seq(
       "org.powerscala" %% "powerscala-core" % powerscalaVersion,
       "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
@@ -113,11 +116,6 @@ lazy val client = project.in(file("client"))
   .dependsOn(core, application, server)
 
 lazy val boot = project.in(file("boot"))
-  .enablePlugins(BuildInfoPlugin)
-  .settings(
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.outr.jefe"
-  )
   .settings(
     name := "jefe-boot",
     fork := true,

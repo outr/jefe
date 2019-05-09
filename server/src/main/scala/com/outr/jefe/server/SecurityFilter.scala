@@ -14,7 +14,7 @@ object SecurityFilter extends ConnectionFilter {
 
   override def filter(connection: HttpConnection): Future[FilterResponse] = {
     val token = connection.request.headers.first(HeaderKey("jefe.token")).getOrElse("")
-    if (JefeServer.token != token) {
+    if (connection.request.url.path.toString().startsWith("/jefe") && JefeServer.token != token) {
       scribe.warn(s"Security failure, invalid token specified: $token (actual token: ${JefeServer.token})")
       val ve = ValidationError(
         message = if (token.isEmpty) {
