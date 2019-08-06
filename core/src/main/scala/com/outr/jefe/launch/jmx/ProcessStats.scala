@@ -2,8 +2,8 @@ package com.outr.jefe.launch.jmx
 
 case class ProcessStats(id: String,
                         os: OperatingSystem,
-                        heapUsage: MemoryUsage,
-                        nonHeapUsage: MemoryUsage,
+                        heapUsage: MemUsage,
+                        nonHeapUsage: MemUsage,
                         threading: Threading,
                         classLoading: ClassLoading) {
   def toList: List[String] = List(

@@ -2,8 +2,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.5"
-scalaVersion in ThisBuild := "2.12.8"
+version in ThisBuild := "2.1.0-SNAPSHOT"
+scalaVersion in ThisBuild := "2.13.0"
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -30,13 +30,11 @@ developers in ThisBuild := List(
 
 fork in Test in ThisBuild := true
 
-val coursierVersion = "1.0.3"
-val libraryManagementVersion = "1.2.4"
-val powerscalaVersion = "2.0.5"
-val reactifyVersion = "3.0.3"
-val scribeVersion = "2.7.3"
-val youiVersion = "0.10.15"
-val scalatestVersion = "3.0.5"
+val coursierVersion = "2.0.0-RC3-1"
+val reactifyVersion = "3.0.4"
+val scribeVersion = "2.7.9"
+val youiVersion = "0.11.17"
+val scalatestVersion = "3.1.0-SNAP13"
 
 lazy val root = project.in(file("."))
   .aggregate(core, resolve, launch, application, client, server, boot, nativeJVM, nativeNative)
@@ -51,9 +49,7 @@ lazy val core = project.in(file("core"))
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "com.outr.jefe",
     libraryDependencies ++= Seq(
-      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
-      "org.powerscala" %% "powerscala-concurrent" % powerscalaVersion,
-      "io.youi" %% "youi-core" % youiVersion
+      "io.youi" %% "youi-server" % youiVersion
     )
   )
 
@@ -63,10 +59,6 @@ lazy val resolve = project.in(file("resolve"))
     libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % coursierVersion,
       "io.get-coursier" %% "coursier-cache" % coursierVersion,
-      "org.scala-sbt" %% "librarymanagement-core" % libraryManagementVersion,
-      "org.scala-sbt" %% "librarymanagement-ivy" % libraryManagementVersion,
-      "org.powerscala" %% "powerscala-core" % powerscalaVersion,
-      "org.powerscala" %% "powerscala-io" % powerscalaVersion,
       "com.outr" %% "scribe-slf4j" % scribeVersion,
       "org.scalatest" %% "scalatest" % scalatestVersion % "test"
     )

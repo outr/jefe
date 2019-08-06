@@ -3,7 +3,7 @@ package com.outr.jefe.resolve
 import java.io.{File, FileNotFoundException}
 import java.net.URL
 
-import org.powerscala.io.IO
+import io.youi.stream._
 
 import scala.xml.XML
 

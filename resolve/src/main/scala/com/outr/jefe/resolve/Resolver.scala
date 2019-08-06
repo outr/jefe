@@ -40,10 +40,10 @@ trait Resolver {
 object Resolver {
   def default: Resolver = Profig("resolver").as[String]("sbt") match {
     case "coursier" => CoursierResolver
-    case "sbt" => SBTResolver
+    case "sbt" => throw new RuntimeException("SBT resolver disabled") //SBTResolver
     case s => {
-      scribe.warn(s"Invalid resolver specified: $s (must be 'sbt' or 'coursier'), defaulting to sbt...")
-      SBTResolver
+      scribe.warn(s"Invalid resolver specified: $s (must be 'sbt' or 'coursier'), defaulting to coursier...")
+      CoursierResolver
     }
   }
 }

@@ -30,8 +30,8 @@ object JMXProcessMonitor {
       val mxMem = instance[MemoryMXBean](ManagementFactory.MEMORY_MXBEAN_NAME)
       val onHeap = mxMem.getHeapMemoryUsage
       val offHeap = mxMem.getNonHeapMemoryUsage
-      val heapUsage = MemoryUsage(onHeap.getCommitted, onHeap.getInit, onHeap.getMax, onHeap.getUsed)
-      val nonHeapUsage = MemoryUsage(offHeap.getCommitted, offHeap.getInit, offHeap.getMax, offHeap.getUsed)
+      val heapUsage = MemUsage(onHeap.getCommitted, onHeap.getInit, onHeap.getMax, onHeap.getUsed)
+      val nonHeapUsage = MemUsage(offHeap.getCommitted, offHeap.getInit, offHeap.getMax, offHeap.getUsed)
 
       val mxCL = instance[ClassLoadingMXBean](ManagementFactory.CLASS_LOADING_MXBEAN_NAME)
       val classLoading = ClassLoading(mxCL.getLoadedClassCount, mxCL.getTotalLoadedClassCount, mxCL.getUnloadedClassCount)
@@ -62,8 +62,8 @@ object JMXProcessMonitor {
     val mxMem = ManagementFactory.getMemoryMXBean
     val onHeap = mxMem.getHeapMemoryUsage
     val offHeap = mxMem.getNonHeapMemoryUsage
-    val heapUsage = MemoryUsage(onHeap.getCommitted, onHeap.getInit, onHeap.getMax, onHeap.getUsed)
-    val nonHeapUsage = MemoryUsage(offHeap.getCommitted, offHeap.getInit, offHeap.getMax, offHeap.getUsed)
+    val heapUsage = MemUsage(onHeap.getCommitted, onHeap.getInit, onHeap.getMax, onHeap.getUsed)
+    val nonHeapUsage = MemUsage(offHeap.getCommitted, offHeap.getInit, offHeap.getMax, offHeap.getUsed)
 
     val mxCL = ManagementFactory.getClassLoadingMXBean
     val classLoading = ClassLoading(mxCL.getLoadedClassCount, mxCL.getTotalLoadedClassCount, mxCL.getUnloadedClassCount)

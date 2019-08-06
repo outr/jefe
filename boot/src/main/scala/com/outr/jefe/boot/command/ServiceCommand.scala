@@ -2,7 +2,7 @@ package com.outr.jefe.boot.command
 
 import java.io.File
 
-import org.powerscala.io._
+import io.youi.stream._
 import profig.Profig
 
 object ServiceCommand extends Command {

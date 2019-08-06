@@ -1,6 +1,6 @@
 package com.outr.jefe.launch.jmx
 
-import org.powerscala.util.NetUtil
+import io.youi.server.ServerUtil
 
 import scala.annotation.tailrec
 
@@ -24,7 +24,7 @@ object JMXConfig {
   private def nextPortRecursive(): Int = {
     val port = counter
     counter += 1
-    if (NetUtil.isTCPPortFree(port)) {
+    if (ServerUtil.isPortAvailable(port)) {
       port
     } else {
       nextPortRecursive()

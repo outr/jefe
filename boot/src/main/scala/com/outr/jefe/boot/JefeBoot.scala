@@ -6,7 +6,7 @@ import com.outr.jefe.{BuildInfo, Jefe}
 import com.outr.jefe.boot.command._
 import com.outr.jefe.resolve.{MavenRepository, Repositories}
 import com.outr.jefe.server.JefeServer
-import org.powerscala.io.IO
+import io.youi.stream._
 import profig.{FileType, Profig, ProfigLookupPath, ProfigPath}
 
 object JefeBoot {
@@ -19,7 +19,7 @@ object JefeBoot {
   lazy val additionalRepositories: List[MavenRepository] = config("repositories").opt[List[MavenRepository]].getOrElse(Nil)
   lazy val repositories: Repositories = Repositories.default.withRepositories(additionalRepositories: _*)
 
-  val commands = List(
+  val commands: List[Command] = List(
     RunCommand,
     SetCommand,
     GetCommand,

@@ -97,10 +97,10 @@ case class ArtifactApplication(id: String,
                                enabled: Boolean = true) extends ApplicationProcess {
   override protected def launcher: ProcessLauncher = {
     // Resolve
-    val resolverInstance = if (resolver.toLowerCase == "coursier") {
-      CoursierResolver
+    val resolverInstance = if (resolver.toLowerCase == "sbt") {
+      throw new RuntimeException("SBT resolver is disabled")      //SBTResolver
     } else {
-      SBTResolver
+      CoursierResolver
     }
     val manager = ArtifactManager(repositories, resolverInstance)
     val jars = (artifacts.flatMap { artifact =>
