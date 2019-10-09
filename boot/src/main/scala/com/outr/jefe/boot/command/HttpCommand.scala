@@ -3,7 +3,7 @@ package com.outr.jefe.boot.command
 import java.io.File
 
 import io.youi.client.HttpClient
-import io.youi.http.Method
+import io.youi.http.HttpMethod
 import io.youi.http.content.Content
 import io.youi.net.{ContentType, URL}
 import org.powerscala.concurrent.Time
@@ -23,7 +23,7 @@ object HttpCommand extends Command {
   override def execute(): Unit = {
     val workingDirectory = new File(Profig("workingDirectory").opt[String].getOrElse("."))
     val url = URL(require("url"))
-    val method = Method(require("method"))
+    val method = HttpMethod(require("method"))
     val contentFile = Profig("content").opt[String].map(fileName => new File(workingDirectory, fileName))
     val contentType = Profig("contentType").opt[String] match {
       case Some(s) => ContentType.parse(s)

@@ -42,7 +42,7 @@ class ResolveSpec extends WordSpec with Matchers {
         val manager = ArtifactManager(repositories, SBTResolver)
         val latest = manager.release(artifact.artifact).map(_.version).getOrElse(fail())
         val files = manager.resolve(artifact)
-        files.length should be(162)
+        files.length should be(147)
         files.find(_.getName == s"youi-example_$CurrentScalaVersion-$latest.jar") should not be None
       }
     }

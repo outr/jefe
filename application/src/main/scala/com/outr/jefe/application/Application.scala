@@ -192,7 +192,26 @@ case class StaticSiteApplication(id: String,
 
   object server extends Server {
     config.listeners := List(http, https).flatten
-    handler.file(new File(directory))
+    val baseDirectory = new File(directory)
+    handler.file(baseDirectory, (path: String) => {
+      if (path == "/") {
+        val html = baseDirectory
+          .listFiles()
+          .sortBy(_.lastModified())
+          .reverse
+          .map(_.getName)
+          .filter(_.toLowerCase.endsWith(".html"))
+        if (html.contains("index.html")) {
+          s"/index.html"
+        } else if (html.nonEmpty) {
+          html.head
+        } else {
+          "/"
+        }
+      } else {
+        path
+      }
+    })
   }
 
   override def start(): Unit = {

@@ -2,8 +2,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.5"
-scalaVersion in ThisBuild := "2.12.8"
+version in ThisBuild := "2.0.6-SNAPSHOT"
+scalaVersion in ThisBuild := "2.12.10"
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("releases"),
@@ -27,19 +27,18 @@ scmInfo in ThisBuild := Some(
 developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
-
 fork in Test in ThisBuild := true
 
 val coursierVersion = "1.0.3"
-val libraryManagementVersion = "1.2.4"
+val libraryManagementVersion = "1.3.0"
 val powerscalaVersion = "2.0.5"
-val reactifyVersion = "3.0.3"
-val scribeVersion = "2.7.3"
-val youiVersion = "0.10.15"
+val reactifyVersion = "3.0.5"
+val scribeVersion = "2.7.10"
+val youiVersion = "0.11.32"
 val scalatestVersion = "3.0.5"
 
 lazy val root = project.in(file("."))
-  .aggregate(core, resolve, launch, application, client, server, boot, nativeJVM, nativeNative)
+  .aggregate(core, resolve, launch, application, client, server, boot, nativeJVM)
   .settings(
     publishArtifact := false
   )
@@ -126,11 +125,9 @@ lazy val boot = project.in(file("boot"))
   )
   .dependsOn(client, server)
 
-lazy val native = crossProject(JVMPlatform, NativePlatform).in(file("native"))
+lazy val native = crossProject(JVMPlatform).in(file("native"))
   .settings(
     name := "jefe-native",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := List("2.11.12"),
     libraryDependencies += "com.outr" %%% "scribe" % scribeVersion
   )
   .jvmSettings(
@@ -138,4 +135,3 @@ lazy val native = crossProject(JVMPlatform, NativePlatform).in(file("native"))
   )
 
 lazy val nativeJVM = native.jvm
-lazy val nativeNative = native.native
