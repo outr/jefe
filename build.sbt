@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "jefe"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "2.0.7-SNAPSHOT"
+version in ThisBuild := "2.0.7"
 scalaVersion in ThisBuild := "2.12.10"
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
