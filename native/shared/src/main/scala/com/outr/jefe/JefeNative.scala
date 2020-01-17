@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 
 object JefeNative {
   private val CheckVersionTimeout: Long = 24 * 60 * 60 * 1000
-  private val MavenMetadataURL = "http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/maven-metadata.xml"
+  private val MavenMetadataURL = "https://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/maven-metadata.xml"
 
   // TODO: support other paths
   private lazy val curl = new File("/usr/bin/curl")
@@ -70,7 +70,7 @@ object JefeNative {
     if (Files.notExists(assemblyJAR)) {
       scribe.info(s"Downloading ${assemblyJAR.getFileName}...")
       Files.deleteIfExists(assemblyJARTemp)
-      val jar = s"http://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$version/jefe-boot_2.12-$version-assembly.jar"
+      val jar = s"https://repo1.maven.org/maven2/com/outr/jefe-boot_2.12/$version/jefe-boot_2.12-$version-assembly.jar"
       println(s"Downloading $jar...")
       saveURL(jar, assemblyJARTemp)
       Files.move(assemblyJARTemp, assemblyJAR)
